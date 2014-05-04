@@ -200,12 +200,11 @@ public:
 
 class OutputHttpProtocol : public OutputProtocol {
 public:
-    OutputHttpProtocol(/*Callback callback*/) :
-        OutputProtocol(/*callback*/)
+    OutputHttpProtocol() :
+        OutputProtocol()
         {}
 
     virtual Buffer getRespond(Buffer buffer) {
-        //auto buffer = getResult();
         return buffer;
     } 
 };
