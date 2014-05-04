@@ -1,0 +1,7 @@
+bin/
+buildscons/
+dist/
+libs/
+scons-tools/globtool.pyc
+scons-tools/srcdist.pyc
+scons-tools/targz.pyc
