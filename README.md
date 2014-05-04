@@ -8,6 +8,7 @@
 - Для отступа мы используем 4 пробела, табуляция запрещена
 - Мы используем `#pragma once` вместо define guard
 - Разрешено использовать исключения
+- Мы используем `std::cin` и `std::cout` вместо `printf` и `scanf`
 
 ## JsonCpp
 Для сборки [JsonCpp](http://jsoncpp.sourceforge.net/) потребуется установить [scons](http://www.scons.org/):

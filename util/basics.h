@@ -55,4 +55,10 @@ struct FieldState
     std::vector<Coin> coins;
 };
 
+struct Turn
+{
+    PlayerId id;
+    Acceleration acceleration;
+};
+
 } // namespace ab
