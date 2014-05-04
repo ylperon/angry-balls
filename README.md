@@ -16,7 +16,8 @@
 - `brew install scons` под Mac OS
 
 Вопрос на стековерфлоу про то, как собрать JsonCpp под линукс [link](http://stackoverflow.com/questions/4628922/building-jsoncpp-linux-an-instruction-for-us-mere-mortals).
-Вкратце это делается так для Linux и Mac OS X.
+
+Вкратце это делается так для Linux и Mac OS X:
 
 `$ cd \path\to\jsoncpp\`
 
