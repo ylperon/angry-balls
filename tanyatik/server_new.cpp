@@ -47,11 +47,13 @@ public:
         {}
 
     InputHandler createInputHandler(IODescriptor &descriptor) {
-        typename TaskHandler<ProxyRequestHandler>::Task 
-            inputCallback(task_handler_, descriptor.getDescriptor());
+        // after input is completed, we need to put a task into thread pool inside TaskHandler
+        // after task is completed, TaskHandler will put result back in IOServer
+        typename TaskHandler<ProxyRequestHandler>::TaskCreator
+            taskCreator(task_handler_, descriptor.getDescriptor());
 
         return InputHandler(descriptor, 
-                InputHttpProtocol(inputCallback));
+                InputHttpProtocol(taskCreator));
     }
 
     OutputHandler createOutputHandler(IODescriptor &descriptor) {
