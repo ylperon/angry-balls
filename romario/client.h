@@ -13,16 +13,16 @@
 //#include "../yazevnul/basics.h"
 
 
-class Client
+class IOClient
 {
 public:
-    Client();
-    ~Client();
+    IOClient();
+    ~IOClient();
 
     bool Connection(size_t port) const;
 
-    int SendAll(char *buf, int len, int flags) const;
-    int RecvAll(char *buf, int len, int flags) const;
+    int SendAll(const std::string& buf, int flags) const;
+    int RecvAll(std::string& buf, int flags) const;
 
 private:
     int sockfd_;
@@ -35,9 +35,9 @@ public:
     Gamer();
     ~Gamer();
 
-    bool StartGame();
+    bool StartGame(size_t port);
 
 private:
-    Client client_;
-    string id;
+    IOClient client_;
+    std::string id_;
 };
