@@ -53,14 +53,13 @@ void testMultithreadContainer(std::function<void(C<int> *, const std::vector<int
 
         for (int i = 0; i < threads_count; ++i) {
             writers.emplace_back(std::thread(std::bind(write_task, &container, data[i])));
+            readers.emplace_back(std::thread(std::bind(read_task, &container, &result_data[i])));
         }
+
         for (int i = 0; i < threads_count; ++i) {
             writers[i].join();
         }
      
-        for (int i = 0; i < threads_count; ++i) {
-            readers.emplace_back(std::thread(std::bind(read_task, &container, &result_data[i])));
-        }
         for (int i = 0; i < threads_count; ++i) {
             readers[i].join();
         }
