@@ -113,15 +113,9 @@
         "time_delta" : "<float>",
         "velocity_max" : "<float>",
         "players" : [
-            { "id" : "<uint32>",
-              "x" : "<float>", "y" : "<float>",
-              "v_x" : "<float>", "v_y" : "<float>",
-              "score" : "<float>" },
+            { "id" : "<uint32>", "x" : "<float>", "y" : "<float>", "v_x" : "<float>", "v_y" : "<float>", "score" : "<float>" },
             ...
-            { "id" : "<uint32>",
-            "x" : "<float>", "y" : "<float>",
-            "v_x" : "<float>", "v_y" : "<float>",
-            "score" : "<float>" }
+            { "id" : "<uint32>", "x" : "<float>", "y" : "<float>", "v_x" : "<float>", "v_y" : "<float>", "score" : "<float>" }
         ],
         "coins" : [
             { "x" : "<float>", "y" : "<float>", "value" : "float" },
@@ -136,7 +130,7 @@
 
     {
         "type" : "TURN",
-        "state_id" : "<uint32>",
+        "state_id" : "<uint64>",
         "id" : "<uint32>",
         "a_x" : "<float>",
         "a_y" : "<float>"
