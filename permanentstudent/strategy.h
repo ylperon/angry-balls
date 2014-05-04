@@ -17,12 +17,15 @@ private:
         BestMoveToCoin(const double time, const Acceleration& acceleration, const int coin_index);
     };
 
-    static const int AngleStepNumber = 10000;
+    static const size_t kAngleStepNumber = 10000;
 
-    Player getNextState(const FieldState& state, const Player& previous_state,
-        const Acceleration& acceleration);
-    BestMoveToCoin getBestMove(const FieldState& state, const PlayerId player_id);
+    Player GetNextState(const FieldState& state, const Player& previous_state,
+                        const Acceleration& acceleration);
+    BestMoveToCoin GetBestMove(const FieldState& state, const PlayerId player_id);
 
 public:
     Acceleration GetTurn(const FieldState& state, const PlayerId player_id);
+    virtual ~Strategy()
+    {
+    }
 };
