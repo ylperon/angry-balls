@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 
@@ -10,8 +12,9 @@
 //#include "strategy.h" [in production]
 //#include "basics.h" [in production]
 //#include "../permanentstudent/strategy.h"
-//#include "../yazevnul/basics.h"
+#include "../util/basics.h"
 
+namespace ab {
 
 class IOClient
 {
@@ -29,15 +32,21 @@ private:
 
 };
 
+template <class Strategy>
 class Gamer
 {
 public:
     Gamer();
     ~Gamer();
 
-    bool StartGame(size_t port);
+    bool ConnectionToServer(size_t port);
+    void Game() const;
+    std::string Turn(const std::string& state) const;
 
 private:
     IOClient client_;
-    std::string id_;
+    size_t id_;
+    Strategy strategy_;
 };
+
+}

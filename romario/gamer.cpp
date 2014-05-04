@@ -1,7 +1,9 @@
 #include <iostream>
-#include "client.h"
+#include "gamer.h"
 
 //-------------------------------------------------------------------------------------------------
+
+namespace ab {
 
 IOClient::IOClient()
 {
@@ -70,10 +72,14 @@ int IOClient::RecvAll(std::string& buf, int flags) const
 
 //-------------------------------------------------------------------------------------------------
 
-Gamer::Gamer() {}
-Gamer::~Gamer() {}
+template <class Strategy>
+Gamer<Strategy>::Gamer() {}
 
-bool Gamer::StartGame(size_t port)
+template <class Strategy>
+Gamer<Strategy>::~Gamer() {}
+
+template <class Strategy>
+bool Gamer<Strategy>::ConnectionToServer(size_t port)
 {
     while (!client_.Connection(port)) {
         std::cout << "Connection..." << std::endl;
@@ -89,8 +95,33 @@ bool Gamer::StartGame(size_t port)
     {
         return false;
     }
-    id_ = start_game_answer;
+    // parse start_game_answer
+    id_ = atoi(start_game_answer);
     return true;
+}
+
+template <class Strategy>
+void Gamer<Strategy>::Game() const 
+{
+    std::string state;
+    while (client_.RecvAll(state, 0) != -1) {
+        std::string turn = Turn(state);
+        int send_result = client_.SendAll(turn, 0);
+        if (send_result == -1) {
+            return;
+        }
+    }
+}
+
+template <class Strategy>
+std::string Gamer<Strategy>::Turn(const std::string& state) const
+{
+    FieldState field_state;
+    // parse state in field_state
+    Acceleration acceleration = strategy_.TODO(field_state);
+    std::string turn;
+    // make turn json
+    return turn;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -98,17 +129,11 @@ bool Gamer::StartGame(size_t port)
 int main(int argc, char const *argv[]) {
 
     size_t port = 1234;
-    Gamer gamer;
-
-    // request to start a game
-    while (!gamer.StartGame(port)) {}
-    
-
-
-    // get data from server
-    //FieldState field_state;
-
-
+    Gamer<Strategy> gamer;
+    while (!gamer.ConnectionToServer(port)) {}
+    gamer.Game();
 
     return 0;
+}
+
 }

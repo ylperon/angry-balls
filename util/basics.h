@@ -2,15 +2,21 @@
 
 #include <vector>
 
+namespace ab {
+
 struct Point
 {
     double x;
     double y;
 };
 
-struct Velocity : Point;
+struct Velocity : Point
+{
+};
 
-struct Acceleration : Point;
+struct Acceleration : Point
+{
+};
 
 typedef unsigned int PlayerId;
 
@@ -48,3 +54,5 @@ struct FieldState
 
     std::vector<Coin> coins;
 };
+
+} // namespace ab
