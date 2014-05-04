@@ -44,6 +44,6 @@ public:
 
 private:
     IOClient client_;
-    std::string id_;
+    size_t id_;
     Strategy strategy_;
 };

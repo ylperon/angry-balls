@@ -93,7 +93,7 @@ bool Gamer<Strategy>::ConnectionToServer(size_t port)
     {
         return false;
     }
-    id_ = start_game_answer;
+    id_ = atoi(start_game_answer);
     return true;
 }
 
