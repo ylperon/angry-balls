@@ -12,7 +12,7 @@
 //#include "strategy.h" [in production]
 //#include "basics.h" [in production]
 //#include "../permanentstudent/strategy.h"
-//#include "../yazevnul/basics.h"
+#include "../util/basics.h"
 
 
 class IOClient
@@ -31,14 +31,16 @@ private:
 
 };
 
-template<class Strategy>
+template <class Strategy>
 class Gamer
 {
 public:
     Gamer();
     ~Gamer();
 
-    bool StartGame(size_t port);
+    bool ConnectionToServer(size_t port);
+    void StartGame() const;
+    std::string Turn(const FieldState& field_state) const;
 
 private:
     IOClient client_;

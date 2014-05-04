@@ -1,5 +1,5 @@
 #include <iostream>
-#include "client.h"
+#include "gamer.h"
 
 //-------------------------------------------------------------------------------------------------
 
@@ -70,10 +70,14 @@ int IOClient::RecvAll(std::string& buf, int flags) const
 
 //-------------------------------------------------------------------------------------------------
 
-Gamer::Gamer() {}
-Gamer::~Gamer() {}
+template <class Strategy>
+Gamer<Strategy>::Gamer() {}
 
-bool Gamer::StartGame(size_t port)
+template <class Strategy>
+Gamer<Strategy>::~Gamer() {}
+
+template <class Strategy>
+bool Gamer<Strategy>::ConnectionToServer(size_t port)
 {
     while (!client_.Connection(port)) {
         std::cout << "Connection..." << std::endl;
@@ -93,15 +97,36 @@ bool Gamer::StartGame(size_t port)
     return true;
 }
 
+template <class Strategy>
+void Gamer<Strategy>::StartGame() const 
+{
+    std::string state;
+    while (client_.RecvAll(state, 0) != -1) {
+        FieldState field_state;
+        // parse state in field_state
+        std::string turn = Turn(field_state);
+        int send_result = client_.SendAll(turn, 0);
+        if (send_result == -1) {
+            return;
+        }
+    }
+}
+
+template <class Strategy>
+std::string Gamer<Strategy>::Turn(const FieldState& field_state) const
+{
+    return std::string();
+}
+
 //-------------------------------------------------------------------------------------------------
 
 int main(int argc, char const *argv[]) {
 
     size_t port = 1234;
-    Gamer<MovingStrategies> gamer;
+    //Gamer<MovingStrategies> gamer;
 
     // request to start a game
-    while (!gamer.StartGame(port)) {}
+    //while (!gamer.ConnectionToServer(port)) {}
 
     //strategy_.setState();
     
