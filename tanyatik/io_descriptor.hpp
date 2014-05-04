@@ -2,6 +2,7 @@
 
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 namespace tanyatik {
 
