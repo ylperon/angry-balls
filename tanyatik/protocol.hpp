@@ -9,11 +9,11 @@ namespace tanyatik {
 
 class InputProtocol {
 protected:
-    typedef std::function<void(std::vector<char>)> Callback;
+    typedef std::function<void(Buffer)> Callback;
 
     Callback callback_;
 
-    void sendResult(std::vector<char> buffer) {
+    void sendResult(Buffer buffer) {
         callback_(buffer);
     }
 
@@ -22,25 +22,12 @@ public:
         callback_(callback)
         {}
 
-    virtual bool processDataChunk(const std::vector<char> &buffer) = 0;
+    virtual bool processDataChunk(Buffer buffer) = 0;
 };
 
 class OutputProtocol {
-protected:
-    typedef std::function<std::vector<char>()> Callback;
- 
-    Callback callback_;
-
-    std::vector<char> getResult() {
-        return callback_();
-    }
-
 public:
-    OutputProtocol(Callback callback) :
-        callback_(callback)
-        {}
-
-    virtual std::vector<char> getRespond() = 0;
+    virtual Buffer getRespond(Buffer) = 0;
 };
 
 class InputLengthPrefixedProtocol : public InputProtocol {
@@ -54,7 +41,7 @@ private:
         StateType state;
         size_t message_length; 
         size_t read_length;
-        std::vector<char> buffer;
+        Buffer buffer;
 
         State(size_t length_size) :
             state(READING_LENGTH),
@@ -74,7 +61,8 @@ public:
         state_(length_size)
         {}
 
-    virtual bool processDataChunk(const std::vector<char> &buffer) {
+    virtual bool processDataChunk(Buffer buffer) {
+        std::cerr << "P: processDataChunk\n";
         auto buffer_seek = buffer.begin();
         bool sent = false;
 
@@ -99,7 +87,6 @@ public:
                         std::copy(buffer_seek, 
                                 buffer_seek + remaining_length, 
                                 state_.buffer.begin() + state_.read_length);
-                        //buffer_seek += remaining_length;
                         char length_buffer[length_size_];
     
                         assert(state_.buffer.size() == state_.message_length);
@@ -112,7 +99,7 @@ public:
                         buffer_seek += remaining_length; 
                         state_.message_length = length;
                         state_.read_length = 0;
-                        state_.buffer = std::vector<char>(state_.message_length);
+                        state_.buffer = Buffer(state_.message_length);
                     }
                     break;
 
@@ -148,13 +135,12 @@ public:
 
 class OutputLengthPrefixedProtocol : public OutputProtocol {
 public:
-    OutputLengthPrefixedProtocol(Callback callback, size_t length_size = 4) :
-        OutputProtocol(callback)
+    OutputLengthPrefixedProtocol(size_t length_size = 4) :
+        OutputProtocol()
         {}
 
-    virtual std::vector<char> getRespond() {
-        std::vector<char> message;
-        auto message_body = getResult();    
+    virtual Buffer getRespond(Buffer message_body) {
+        Buffer message;
 
         char length_buffer[sizeof(int)];
         *((int *) length_buffer) = message.size();
@@ -168,37 +154,38 @@ public:
 // Actually this is only a poor stub for proxy server for SHAD :)
 class InputHttpProtocol : public InputProtocol {
 private:
-    std::vector<char> buffer_;
+    Buffer buffer_;
 
 public:
-    InputHttpProtocol(Callback callback) :
-        InputProtocol(callback)
+    template<typename T>
+    InputHttpProtocol(T callback) :
+        InputProtocol(Callback(callback))
         {}
 
-    virtual bool processDataChunk(const std::vector<char> &buffer) {
+    virtual bool processDataChunk(Buffer buffer) {
         auto buffer_begin = buffer.begin();
         auto buffer_seek = buffer.begin();
-        char previous_symbol = 0;
         bool sent = false;
 
-        //std::cerr << "processDataChunk\n[";
-        //std::cerr << buffer.data() << "]\n";
         while (buffer_seek != buffer.end()) {  
-            if (*buffer_seek == '\n'/* && previous_symbol == '\n'*/) {
-                buffer_.insert(buffer_.end(), buffer_begin, buffer_seek + 1);
+            if (std::distance(buffer_begin, buffer_seek) >= 4 &&
+                    *buffer_seek == '\n' && 
+                    *(buffer_seek - 1) == '\r' &&
+                    *(buffer_seek - 2) == '\n' &&
+                    *(buffer_seek - 3) == '\r') {
+                buffer_.insert(buffer_.end(), buffer_begin, buffer_seek);
+                buffer_.push_back('\n');
                 buffer_.push_back('\0');
 
                 sendResult(buffer_);
                 sent = true;
 
-                buffer_ = std::vector<char>();
+                buffer_ = Buffer();
 
                 buffer_begin = buffer_seek + 1;
                 if (buffer_begin != buffer.end() && *buffer_begin == '\0') {
                     ++buffer_begin;
                 }
-            } else {
-                previous_symbol = *buffer_seek;
             }
             ++buffer_seek;
         }
@@ -213,12 +200,12 @@ public:
 
 class OutputHttpProtocol : public OutputProtocol {
 public:
-    OutputHttpProtocol(Callback callback) :
-        OutputProtocol(callback)
+    OutputHttpProtocol(/*Callback callback*/) :
+        OutputProtocol(/*callback*/)
         {}
 
-    virtual std::vector<char> getRespond() {
-        auto buffer = getResult();
+    virtual Buffer getRespond(Buffer buffer) {
+        //auto buffer = getResult();
         return buffer;
     } 
 };
