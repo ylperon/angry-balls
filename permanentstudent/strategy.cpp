@@ -1,23 +1,34 @@
 #include "strategy.h"
-#include "basics.h"
 
 #include <vector>
 #include <cmath>
 
-const double PI = acos(-1.0);
+#include "basics.h"
 
-Strategy::BestMoveToCoin::BestMoveToCoin(double time, const Acceleration& acceleration,
-    int coinIndex) {
+namespace {
 
-    best_time = time;
-    best_acceleration = acceleration;
-    coin_id = coinIndex;
-}
+static const double PI = acos(-1.0);
+static const size_t kAngleStepNumber = 10000;
 
-Player Strategy::GetNextState(const FieldState& state, const Player& previous_state,
-    const Acceleration& acceleration) {
+struct BestMoveToCoin
+{
+    double best_time;
+    ab::Acceleration best_acceleration;
+    int coin_id;
 
-    Player next_state;
+    BestMoveToCoin(const double time, const ab::Acceleration& acceleration, const int coin_index)
+        : best_time(time)
+        , best_acceleration(acceleration)
+        , coin_id(coin_index)
+    {
+    }
+};
+
+
+ab::Player GetNextState(const ab::FieldState& state, const ab::Player& previous_state,
+                        const ab::Acceleration& acceleration)
+{
+    ab::Player next_state;
     next_state.radius = previous_state.radius;
     next_state.id = previous_state.id;
 
@@ -26,9 +37,9 @@ Player Strategy::GetNextState(const FieldState& state, const Player& previous_st
     double velocity_now_x = velocity_previous_x + acceleration.x * state.time_delta;
     double velocity_now_y = velocity_previous_y + acceleration.y * state.time_delta;
 
-    if (velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y > 
-        state.velocity_max * state.velocity_max) {
-
+    if (velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y >
+        state.velocity_max * state.velocity_max)
+    {
         velocity_now_x /= sqrt(velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y);
         velocity_now_y /= sqrt(velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y);
         velocity_now_x *= state.velocity_max;
@@ -40,28 +51,25 @@ Player Strategy::GetNextState(const FieldState& state, const Player& previous_st
     double center_now_x = center_previous_x + velocity_now_x * state.time_delta;
     double center_now_y = center_previous_y + velocity_now_y * state.time_delta;
 
-    if (sqrt(center_now_x * center_now_x + center_now_y * center_now_y) <= 
-        state.radius - previous_state.radius) {
-
+    if (sqrt(center_now_x * center_now_x + center_now_y * center_now_y) <=
+        state.radius - previous_state.radius)
+    {
         next_state.center.x = center_now_x;
         next_state.center.y = center_now_y;
         next_state.velocity.x = velocity_now_x;
         next_state.velocity.y = velocity_now_y;
         return next_state;
-
     } else {
-
         double left_bound = 0, right_bound = 1;
 
         for (int iter = 0; iter < 50; ++iter) {
-
             double mid = (left_bound + right_bound) / 2;
             double center_mid_x = center_previous_x + velocity_now_x * mid * state.time_delta;
             double center_mid_y = center_previous_y + velocity_now_y * mid * state.time_delta;
 
-            if (sqrt(center_mid_x * center_mid_x + center_mid_y * center_mid_y) <= 
-                state.radius - previous_state.radius) {
-
+            if (sqrt(center_mid_x * center_mid_x + center_mid_y * center_mid_y) <=
+                state.radius - previous_state.radius)
+            {
                 left_bound = mid;
             } else {
                 right_bound = mid;
@@ -71,16 +79,16 @@ Player Strategy::GetNextState(const FieldState& state, const Player& previous_st
         double center_mid_x = center_previous_x + velocity_now_x * left_bound * state.time_delta;
         double center_mid_y = center_previous_y + velocity_now_y * left_bound * state.time_delta;
 
-        double absolute_velocity = sqrt(velocity_now_x * velocity_now_x + 
+        double absolute_velocity = sqrt(velocity_now_x * velocity_now_x +
                                         velocity_now_y * velocity_now_y);
         double dist_to_center = sqrt(center_mid_x * center_mid_x + center_mid_y * center_mid_y);
         double angle = asin((velocity_now_x * center_mid_y - velocity_now_y * center_mid_x) /
                             (absolute_velocity * dist_to_center));
 
         double angle_to_rotate = PI + 2 * angle;
-        double velocity_next_x = velocity_now_x * cos(angle_to_rotate) - 
+        double velocity_next_x = velocity_now_x * cos(angle_to_rotate) -
             velocity_now_y * sin(angle_to_rotate);
-        double velocity_next_y = velocity_now_x * sin(angle_to_rotate) + 
+        double velocity_next_y = velocity_now_x * sin(angle_to_rotate) +
             velocity_now_y * cos(angle_to_rotate);
 
         center_now_x = center_mid_x + velocity_next_x * (1 - left_bound) * state.time_delta;
@@ -94,10 +102,10 @@ Player Strategy::GetNextState(const FieldState& state, const Player& previous_st
     }
 }
 
-Strategy::BestMoveToCoin Strategy::GetBestMove(const FieldState& state, const PlayerId player_id) {
-    std::vector<Acceleration> player_accelerations(Strategy::kAngleStepNumber);
-    std::vector<Player> player_state_now(Strategy::kAngleStepNumber), 
-        player_state_next(kAngleStepNumber);
+BestMoveToCoin GetBestMove(const ab::FieldState& state, const ab::PlayerId player_id)
+{
+    std::vector<ab::Acceleration> player_accelerations(kAngleStepNumber);
+    std::vector<ab::Player> player_state_now(kAngleStepNumber), player_state_next(kAngleStepNumber);
 
     for (size_t angle_index = 0; angle_index < kAngleStepNumber; ++angle_index) {
         double curAngle = 2 * PI * angle_index / kAngleStepNumber;
@@ -108,7 +116,6 @@ Strategy::BestMoveToCoin Strategy::GetBestMove(const FieldState& state, const Pl
 
     for (size_t quant_number = 1; quant_number <= 100; ++quant_number) {
         for (size_t angle_index = 0; angle_index < kAngleStepNumber; ++angle_index) {
-
             player_state_next[angle_index] = GetNextState(state,
                 player_state_now[angle_index], player_accelerations[angle_index]);
 
@@ -119,13 +126,13 @@ Strategy::BestMoveToCoin Strategy::GetBestMove(const FieldState& state, const Pl
 
                 double X_cur_coin = state.coins[coin_index].center.x;
                 double Y_cur_coin = state.coins[coin_index].center.x;
-                double dist_to_coin = 
+                double dist_to_coin =
                     sqrt((center_now_x - X_cur_coin) * (center_now_x - X_cur_coin) +
                     (center_now_y - Y_cur_coin) * (center_now_y - Y_cur_coin));
 
                 if (dist_to_coin <= state.players[player_id].radius +
-                    state.coins[coin_index].radius) {
-
+                    state.coins[coin_index].radius)
+                {
                     return BestMoveToCoin(state.time_delta * quant_number,
                                           player_accelerations[angle_index], coin_index);
                 }
@@ -133,24 +140,26 @@ Strategy::BestMoveToCoin Strategy::GetBestMove(const FieldState& state, const Pl
         }
         player_state_now = player_state_next;
     }
-        
-    Acceleration acceleration;
+
+    ab::Acceleration acceleration;
     acceleration.x = 0;
     acceleration.y = 0;
     return BestMoveToCoin(-1, acceleration, -1);
 }
 
-Acceleration Strategy::GetTurn(const FieldState& state, const PlayerId player_id) {
+} // namespace
+
+ab::Acceleration Strategy::GetTurn(const ab::FieldState& state, const ab::PlayerId player_id)
+{
     size_t players_number = state.players.size();
     std::vector<BestMoveToCoin> best_moves;
 
-    for (int player_index = 0; player_index < players_number; ++player_index) {
+    for (int player_index = 0; player_index < players_number; ++player_index)
         best_moves.push_back(GetBestMove(state, player_index));
-    }
 
     int aim_coin = best_moves[player_id].coin_id;
     if (-1 == aim_coin) {
-        Acceleration acceleration;
+        ab::Acceleration acceleration;
         acceleration.x = 0;
         acceleration.y = 0;
         return acceleration;
@@ -158,66 +167,14 @@ Acceleration Strategy::GetTurn(const FieldState& state, const PlayerId player_id
 
     double best_time_to_coin = best_moves[player_id].best_time;
     for (int player_index = 0; player_index < players_number; ++player_index) {
-        if (best_moves[player_index].coin_id == aim_coin && 
-            best_moves[player_index].best_time < best_time_to_coin) {
-
-            Acceleration acceleration;
+        if (best_moves[player_index].coin_id == aim_coin &&
+            best_moves[player_index].best_time < best_time_to_coin)
+        {
+            ab::Acceleration acceleration;
             acceleration.x = 0;
             acceleration.y = 0;
             return acceleration;
         }
     }
     return best_moves[player_id].best_acceleration;
-}
-
-void test(const PlayerId player_id) {
-
-    FieldState state;
-
-    state.id = 555;
-    state.radius = 10;
-    state.time_delta = 0.1;
-    state.velocity_max = 10;
-
-    Player first_player, second_player;
-
-    first_player.center.x = 0;
-    first_player.center.y = 0;
-    first_player.velocity.x = 3;
-    first_player.velocity.y = 5;
-    first_player.radius = 1;
-
-    second_player.center.x = 4;
-    second_player.center.y = 4;
-    second_player.velocity.x = -3;
-    second_player.velocity.y = 4;
-    second_player.radius = 1;
-
-    state.players.push_back(first_player);
-    state.players.push_back(second_player);
-
-    Coin first_coin, second_coin;
-    first_coin.center.x = -7;
-    first_coin.center.y = 1;
-    first_coin.radius = 1;
-    first_coin.value = 1;
-
-    second_coin.center.x = -3;
-    second_coin.center.y = -4;
-    second_coin.radius = 1;
-    second_coin.value = 1;
-
-    state.coins.push_back(first_coin);
-    state.coins.push_back(second_coin);
-
-    Strategy strategy;
-    Acceleration best_acceleration = strategy.GetTurn(state, player_id);
-
-    printf("Ax = %.6lf, Ay = %.6lf\n", best_acceleration.x, best_acceleration.y);
-}
-
-int main() {
-
-    test(0);
-    return 0;
 }
