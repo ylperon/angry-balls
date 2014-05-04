@@ -13,7 +13,6 @@
 #include <vector>
 #include <map>
 #include <functional>
-#include <future>
 
 #include "io_server.hpp"
 #include "io_handler.hpp"
@@ -25,55 +24,51 @@ namespace tanyatik {
 
 class ProxyRequestHandler {
 public:
-    static std::vector<char> processRequest(std::vector<char> request) {
-        std::cerr << "PROCESS REQUEST\n";
+    static Buffer handleRequest(Buffer request) {
+        std::cerr << "HANDLE REQUEST\n";
         std::cerr << "REQUEST [" << request.data() << "]\n";
         std::string respond_string("HTTP/1.1 200 OK\n\n<html>hello<html>\n");
-        std::vector<char> respond_buffer(respond_string.begin(), respond_string.end()); 
+        Buffer respond_buffer(respond_string.begin(), respond_string.end()); 
 
         return respond_buffer;
-    }
-
-    static std::function<std::vector<char>()> getRequestProcessor(std::vector<char> request) {
-        return std::bind(processRequest, request);
     }
 };
 
 struct ProxyIOHandlerCreator {
 private:
-    ServerTaskHandler<ProxyRequestHandler> &task_handler_;
+    std::shared_ptr<TaskHandler<ProxyRequestHandler>> task_handler_;
 
 public:
     typedef AsyncInputHandler<InputHttpProtocol> InputHandler;
     typedef AsyncOutputHandler<OutputHttpProtocol> OutputHandler;
 
-    ProxyIOHandlerCreator(ServerTaskHandler<ProxyRequestHandler> &task_handler) :
+    ProxyIOHandlerCreator(std::shared_ptr<TaskHandler<ProxyRequestHandler>> task_handler) :
         task_handler_(task_handler)
         {}
 
     InputHandler createInputHandler(IODescriptor &descriptor) {
+        typename TaskHandler<ProxyRequestHandler>::Task 
+            inputCallback(task_handler_, descriptor.getDescriptor());
+
         return InputHandler(descriptor, 
-                InputHttpProtocol(task_handler_.getInputTaskHandler
-                    (descriptor.getDescriptor())));
+                InputHttpProtocol(inputCallback));
     }
 
     OutputHandler createOutputHandler(IODescriptor &descriptor) {
-        return OutputHandler(descriptor,
-                OutputHttpProtocol(task_handler_.getOutputTaskHandler
-                    (descriptor.getDescriptor())));
+        return OutputHandler(descriptor, OutputHttpProtocol());
     }
 };
 
 class ProxyServer {
 private:
-    ServerTaskHandler<ProxyRequestHandler> task_handler_;
-    ProxyIOHandlerCreator io_handler_creator_;
+    std::shared_ptr<TaskHandler<ProxyRequestHandler>> task_handler_;
+    std::shared_ptr<ProxyIOHandlerCreator> io_handler_creator_;
     IOServer<EpollDescriptorManager, ProxyIOHandlerCreator> io_server_;
 
 public:
     ProxyServer() :
-        task_handler_(),
-        io_handler_creator_(task_handler_),
+        task_handler_(new TaskHandler<ProxyRequestHandler>()),
+        io_handler_creator_(new ProxyIOHandlerCreator(task_handler_)),
         io_server_(IOServerConfig(), io_handler_creator_)
         {}
 
