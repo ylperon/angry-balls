@@ -1,3 +1,4 @@
+#include <iostream>
 #include "client.h"
 
 //-------------------------------------------------------------------------------------------------
@@ -29,11 +30,11 @@ bool Client::Connection(size_t port) const
     return true;
 }
 
-int Client::SendAll(int sockfd, char *buf, int len, int flags) const
+int Client::SendAll(char *buf, int len, int flags) const
 {
     size_t total_sent = 0;
     while (total_sent < len) {
-        int current_sent = send(sockfd, buf + total_sent, len - total_sent, flags);
+        int current_sent = send(sockfd_, buf + total_sent, len - total_sent, flags);
         if (current_sent == -1)
             return -1;
         total_sent += current_sent;
@@ -41,11 +42,11 @@ int Client::SendAll(int sockfd, char *buf, int len, int flags) const
     return total_sent;
 }
 
-int Client::RecvAll(int sockfd, char *buf, int len, int flags) const
+int Client::RecvAll(char *buf, int len, int flags) const
 {
     size_t total_recv = 0;
     while (total_recv < len) {
-        int current_recv = recv(sockfd, buf + total_recv, len - total_recv, flags);
+        int current_recv = recv(sockfd_, buf + total_recv, len - total_recv, flags);
         if (current_recv == -1)
             return -1;
         total_recv += current_recv;
@@ -55,23 +56,42 @@ int Client::RecvAll(int sockfd, char *buf, int len, int flags) const
 
 //-------------------------------------------------------------------------------------------------
 
+Gamer::Gamer() {}
+Gamer::~Gamer() {}
+
+bool Gamer::StartGame()
+{
+    std::string start_game_request = "CLI_SUB_REQUEST";
+    int send_result = client_.SendAll(start_game_request.c_str(), start_game_request.length(), 0);
+    if (send_result == -1)
+        return false;
+    std::string start_game_answer;
+    if (client_.RecvAll(start_game_answer, start_game_answer.length(), 0) == -1 ||
+        start_game_answer == "FAIL")
+    {
+        return false;
+    }
+    id = start_game_answer;
+    return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
 int main(int argc, char const *argv[]) {
 
-    Client client;
-    while (!client.Connection(1234)) {}
+    size_t port = 1234;
+    Gamer gamer;
+    while (!gamer.client_.Connection(port)) {}
 
     // request to start a game
-    //send(sock, message, sizeof(message), 0);
-
+    gamer.StartGame();
+    
 
 
     // get data from server
     //FieldState field_state;
 
 
-
-    // socket close
-    //close(sockfd);
 
     return 0;
 }
