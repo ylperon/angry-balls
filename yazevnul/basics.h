@@ -24,7 +24,7 @@ struct Player
     Velocity velocity;
 };
 
-typedef int Score;
+typedef double Score;
 
 struct Coin
 {
