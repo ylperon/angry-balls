@@ -3,8 +3,8 @@
 #include <thread>
 #include <vector>
 #include <atomic>
-#include <future>
 #include <queue>
+#include <list>
 
 #include "lock_free_queue.hpp"
 
@@ -30,26 +30,24 @@ public:
 class ThreadPool {
 private: 
     std::atomic_bool done_;
-    LockFreeQueue<std::shared_ptr<std::packaged_task<void()>>> task_queue_;
+    LockFreeQueue<std::function<void()>> task_queue_;
     std::vector<std::thread> workers_;
     ThreadJoiner joiner_;
 
     void doWork() {
         while (!done_) {
-            std::shared_ptr<std::packaged_task<void()>> task;
+            std::function<void()> task;
 
-            if (task_queue_.dequeue(&task)) {
-                (*task)();
-            } else {
+            if (task_queue_.tryPop(&task)) {
+                task();
+            }
+            else {
                 std::this_thread::yield();
             }
         }
     }
 
 public:
-    template<typename ResultType>
-    using TaskHandle = std::future<ResultType>;
-
     ThreadPool(size_t workers_count = std::thread::hardware_concurrency()) :
         done_(false),
         joiner_(workers_) {
@@ -69,16 +67,8 @@ public:
     }
     
     template<typename FunctionType>
-    TaskHandle<typename std::result_of<FunctionType()>::type> submit(FunctionType function) {
-        typedef typename std::result_of<FunctionType()>::type ResultType;
-
-        auto task = std::make_shared<std::packaged_task<ResultType()>>(function);
-
-        TaskHandle<ResultType> future_result(task->get_future());
-
-        task_queue_.push(std::make_shared<std::packaged_task<void()>>([=]() {(*task)();}));
-
-        return future_result;
+    void submit(FunctionType function) {
+        task_queue_.push(std::function<void()>(function));
     }
 };
 
