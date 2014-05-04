@@ -1,7 +1,7 @@
 # Angry Balls
 
 ## Wiki
-See wiki page [here](https://bitbucket.org/kostyabazhanov/angry-balls/wiki/Home)
+See wiki page [here](https://bitbucket.org/kostyabazhanov/angry-balls/wiki/Home).
 
 ## Authors
 - Tatiana Borisova [tanyatik@yandex.ru](mailto:tanyatik@yandex.ru)
