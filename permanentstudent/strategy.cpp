@@ -1,242 +1,179 @@
-#include <iostream>
+#include "strategy.h"
+
 #include <vector>
 #include <cmath>
-#include <string>
-#include <algorithm>
-#include <map>
-#include <set>
-#include <math.h>
-#include <iomanip>
 
-const double PI = acos(-1.0);
+#include "basics.h"
 
-class MovingStrategies {
+namespace {
 
-private:
-    struct CoinState
+static const double kPi = acos(-1.0);
+static const size_t kAngleStepNumber = 10000;
+
+struct BestMoveToCoin
+{
+    double best_time;
+    ab::Acceleration best_acceleration;
+    int coin_id;
+
+    BestMoveToCoin(const double time, const ab::Acceleration& acceleration, const int coin_index)
+        : best_time(time)
+        , best_acceleration(acceleration)
+        , coin_id(coin_index)
     {
-        double X;
-        double Y;
-
-        CoinState() {
-            X = 0;
-            Y = 0;
-        }
-
-        CoinState(double curX, double curY) {
-            X = curX;
-            Y = curY;
-        }
-    };
-
-    struct BallState
-    {
-        double X;
-        double Y;
-        double Vx;
-        double Vy;
-        double score;
-
-        BallState() {
-            X = 0;
-            Y = 0;
-            Vx = 0;
-            Vy = 0;
-            score = 0;
-        }
-
-        BallState(double curX, double curY, double curVx, double curVy, double curScore = 0) {
-            X = curX;
-            Y = curY;
-            Vx = curVx;
-            Vy = curVy;
-            score = curScore;
-        }
-    };
-
-    struct Acceleration
-    {
-        double Ax;
-        double Ay;
-
-        Acceleration() {
-            Ax = 0;
-            Ay = 0;
-        }
-
-        Acceleration(double curAx, double curAy) {
-            Ax = curAx;
-            Ay = curAy;
-        }
-    };
-
-    struct FieldState
-    {
-        double fieldRadius;
-        double ballRadius;
-        double coinRadius;
-        double timeQuant;
-        double maxVelocity;
-
-        std::vector<BallState> ballsStates;
-        std::vector<CoinState> coinsStates;
-    };
-
-    struct BestMoveToCoin
-    {
-        double bestTime;
-        Acceleration bestAcceleration;
-        int coin_id;
-
-        BestMoveToCoin(double time, const Acceleration& acceleration, int coinIndex) {
-            bestTime = time;
-            bestAcceleration = acceleration;
-            coin_id = coinIndex;
-        }
-    };
-
-    FieldState state;
-
-    static const size_t MY_ID = 0;
-
-    static const int ANGLE_STEP_NUMBER = 10000;
-
-    BallState getNextState(BallState previousState, Acceleration acceleration) {
-        double Vx_previous = previousState.Vx;
-        double Vy_previous = previousState.Vy;
-        double Vx_now = Vx_previous + acceleration.Ax * state.timeQuant;
-        double Vy_now = Vy_previous + acceleration.Ay * state.timeQuant;
-        if (Vx_now * Vx_now + Vy_now * Vy_now > state.maxVelocity * state.maxVelocity) {
-            Vx_now /= sqrt(Vx_now * Vx_now + Vy_now * Vy_now);
-            Vy_now /= sqrt(Vx_now * Vx_now + Vy_now * Vy_now);
-            Vx_now *= state.maxVelocity;
-            Vy_now *= state.maxVelocity;
-        }
-        double X_previous = previousState.X;
-        double Y_previous = previousState.Y;
-        double X_now = X_previous + Vx_now * state.timeQuant;
-        double Y_now = Y_previous + Vy_now * state.timeQuant;
-        if (sqrt(X_now * X_now + Y_now * Y_now) <= state.fieldRadius - state.ballRadius) {
-            return BallState(X_now, Y_now, Vx_now, Vy_now);
-        } else {
-
-            double left_bound = 0, right_bound = 1;
-            for (int iter = 0; iter < 50; ++iter) {
-                double middle = (left_bound + right_bound) / 2;
-                double X_mid = X_previous + Vx_now * middle * state.timeQuant;
-                double Y_mid = Y_previous + Vy_now * middle * state.timeQuant;
-                if (sqrt(X_mid * X_mid + Y_mid * Y_mid) <= state.fieldRadius - state.ballRadius) {
-                    left_bound = middle;
-                } else {
-                    right_bound = middle;
-                }
-            }
-
-            double X_mid = X_previous + Vx_now * left_bound * state.timeQuant;
-            double Y_mid = Y_previous + Vy_now * left_bound * state.timeQuant;
-
-            double Vabs = sqrt(Vx_now * Vx_now + Vy_now * Vy_now);
-            double distToCenter = sqrt(X_mid * X_mid + Y_mid * Y_mid);
-            double angle = asin((Vx_now * Y_mid - Vy_now * X_mid) / (Vabs * distToCenter));
-
-            double angle_to_rotate = PI + 2 * angle;
-            double Vx_next = Vx_now * cos(angle_to_rotate) - Vy_now * sin(angle_to_rotate);
-            double Vy_next = Vx_now * sin(angle_to_rotate) + Vy_now * cos(angle_to_rotate);
-
-            double X_now = X_mid + Vx_next * (1 - left_bound) * state.timeQuant;
-            double Y_now = Y_mid + Vy_next * (1 - left_bound) * state.timeQuant;
-
-            return BallState(X_now, Y_now, Vx_next, Vy_next);
-        }
-    }
-
-    BestMoveToCoin getBestMove(size_t ballIndex) {
-        std::vector<Acceleration> ballAccelerations(ANGLE_STEP_NUMBER);
-        std::vector<BallState> ballStateNow(ANGLE_STEP_NUMBER), ballStateNext(ANGLE_STEP_NUMBER);
-
-        for (size_t angleIndex = 0; angleIndex < ANGLE_STEP_NUMBER; ++angleIndex) {
-            double curAngle = 2 * PI * angleIndex / ANGLE_STEP_NUMBER;
-            ballAccelerations[angleIndex] = Acceleration(cos(curAngle), sin(curAngle));
-            ballStateNow[angleIndex] = state.ballsStates[ballIndex];
-        }
-
-        for (size_t quantNumber = 1; quantNumber <= 100; ++quantNumber) {
-            for (size_t angleIndex = 0; angleIndex < ANGLE_STEP_NUMBER; ++angleIndex) {
-                ballStateNext[angleIndex] = getNextState(ballStateNow[angleIndex], ballAccelerations[angleIndex]);
-                double X_now = ballStateNext[angleIndex].X;
-                double Y_now = ballStateNext[angleIndex].Y;
-                for (size_t coinIndex = 0; coinIndex < state.coinsStates.size(); ++coinIndex) {
-                    double X_cur_coin = state.coinsStates[coinIndex].X;
-                    double Y_cur_coin = state.coinsStates[coinIndex].Y;
-                    double dist_to_coin = sqrt((X_now - X_cur_coin) * (X_now - X_cur_coin) + (Y_now - Y_cur_coin) * (Y_now - Y_cur_coin));
-                    if (dist_to_coin <= state.ballRadius + state.coinRadius) {
-                        return BestMoveToCoin(state.timeQuant * quantNumber, ballAccelerations[angleIndex], coinIndex);
-                    }
-                }
-            }
-            ballStateNow = ballStateNext;
-        }
-
-        return BestMoveToCoin(-1, Acceleration(), -1);
-    }
-
-public:
-    MovingStrategies() {
-        state.fieldRadius = 10;
-        state.ballRadius = 1;
-        state.coinRadius = 1;
-        state.timeQuant = 0.1;
-        state.maxVelocity = 10;
-    }
-
-    void setState(const FieldState& newState) {
-        state = newState;
-    }
-
-    Acceleration movePredictiveSimple() {
-        size_t ballNumber = state.ballsStates.size();
-        std::vector<BestMoveToCoin> bestMoves;
-        for (int ballIndex = 0; ballIndex < ballNumber; ++ballIndex) {
-            bestMoves.push_back(getBestMove(ballIndex));
-        }
-        int aimCoin = bestMoves[MY_ID].coin_id;
-        if (aimCoin == -1) {
-            return Acceleration();
-        }
-        double bestTimeToCoin = bestMoves[MY_ID].bestTime;
-        for (int ballIndex = 0; ballIndex < ballNumber; ++ballIndex) {
-            if (bestMoves[ballIndex].coin_id == aimCoin && bestMoves[ballIndex].bestTime < bestTimeToCoin) {
-                return Acceleration();
-            }
-        }
-        return bestMoves[MY_ID].bestAcceleration;
-    }
-
-    void test() {
-        state.fieldRadius = 10;
-        state.ballRadius = 1;
-        state.coinRadius = 1;
-        state.timeQuant = 0.1;
-        state.maxVelocity = 20;
-        BallState firstBall(0, 0, 3, 5);
-        BallState secondBall(4, 4, -3, 4);
-        state.ballsStates.push_back(firstBall);
-        state.ballsStates.push_back(secondBall);
-        CoinState firstCoin(-7, 1);
-        CoinState secondCoin(-3, -4);
-        state.coinsStates.push_back(firstCoin);
-        state.coinsStates.push_back(secondCoin);
-        Acceleration bestAcceleration = movePredictiveSimple();
-        double Ax = bestAcceleration.Ax;
-        double Ay = bestAcceleration.Ay;
-        printf("Ax = %.6lf, Ay = %.6lf\n",Ax,Ay);
     }
 };
 
+ab::Player GetNextState(const ab::FieldState& state, const ab::Player& previous_state,
+                        const ab::Acceleration& acceleration)
+{
+    ab::Player next_state;
+    next_state.radius = previous_state.radius;
+    next_state.id = previous_state.id;
 
-int main() {
+    double velocity_previous_x = previous_state.velocity.x;
+    double velocity_previous_y = previous_state.velocity.y;
+    double velocity_now_x = velocity_previous_x + acceleration.x * state.time_delta;
+    double velocity_now_y = velocity_previous_y + acceleration.y * state.time_delta;
 
-    MovingStrategies strategies;
-    strategies.test();
-    return 0;
+    if (velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y >
+        state.velocity_max * state.velocity_max)
+    {
+        velocity_now_x /= sqrt(velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y);
+        velocity_now_y /= sqrt(velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y);
+        velocity_now_x *= state.velocity_max;
+        velocity_now_y *= state.velocity_max;
+    }
+
+    double center_previous_x = previous_state.center.x;
+    double center_previous_y = previous_state.center.y;
+    double center_now_x = center_previous_x + velocity_now_x * state.time_delta;
+    double center_now_y = center_previous_y + velocity_now_y * state.time_delta;
+
+    if (sqrt(center_now_x * center_now_x + center_now_y * center_now_y) <=
+        state.radius - previous_state.radius)
+    {
+        next_state.center.x = center_now_x;
+        next_state.center.y = center_now_y;
+        next_state.velocity.x = velocity_now_x;
+        next_state.velocity.y = velocity_now_y;
+        return next_state;
+    } else {
+        double left_bound = 0, right_bound = 1;
+
+        for (int iter = 0; iter < 50; ++iter) {
+            double mid = (left_bound + right_bound) / 2;
+            double center_mid_x = center_previous_x + velocity_now_x * mid * state.time_delta;
+            double center_mid_y = center_previous_y + velocity_now_y * mid * state.time_delta;
+
+            if (sqrt(center_mid_x * center_mid_x + center_mid_y * center_mid_y) <=
+                state.radius - previous_state.radius)
+            {
+                left_bound = mid;
+            } else {
+                right_bound = mid;
+            }
+        }
+
+        double center_mid_x = center_previous_x + velocity_now_x * left_bound * state.time_delta;
+        double center_mid_y = center_previous_y + velocity_now_y * left_bound * state.time_delta;
+
+        double absolute_velocity = sqrt(velocity_now_x * velocity_now_x +
+                                        velocity_now_y * velocity_now_y);
+        double dist_to_center = sqrt(center_mid_x * center_mid_x + center_mid_y * center_mid_y);
+        double angle = asin((velocity_now_x * center_mid_y - velocity_now_y * center_mid_x) /
+                            (absolute_velocity * dist_to_center));
+
+        double angle_to_rotate = kPi + 2 * angle;
+        double velocity_next_x = velocity_now_x * cos(angle_to_rotate) -
+            velocity_now_y * sin(angle_to_rotate);
+        double velocity_next_y = velocity_now_x * sin(angle_to_rotate) +
+            velocity_now_y * cos(angle_to_rotate);
+
+        center_now_x = center_mid_x + velocity_next_x * (1 - left_bound) * state.time_delta;
+        center_now_y = center_mid_y + velocity_next_y * (1 - left_bound) * state.time_delta;
+
+        next_state.center.x = center_now_x;
+        next_state.center.y = center_now_y;
+        next_state.velocity.x = velocity_next_x;
+        next_state.velocity.y = velocity_next_y;
+        return next_state;
+    }
+}
+
+BestMoveToCoin GetBestMove(const ab::FieldState& state, const ab::PlayerId player_id)
+{
+    std::vector<ab::Acceleration> player_accelerations(kAngleStepNumber);
+    std::vector<ab::Player> player_state_now(kAngleStepNumber), player_state_next(kAngleStepNumber);
+
+    for (size_t angle_index = 0; angle_index < kAngleStepNumber; ++angle_index) {
+        double curAngle = 2 * kPi * angle_index / kAngleStepNumber;
+        player_accelerations[angle_index].x = cos(curAngle);
+        player_accelerations[angle_index].y = sin(curAngle);
+        player_state_now[angle_index] = state.players[player_id];
+    }
+
+    for (size_t quant_number = 1; quant_number <= 100; ++quant_number) {
+        for (size_t angle_index = 0; angle_index < kAngleStepNumber; ++angle_index) {
+            player_state_next[angle_index] = GetNextState(state,
+                player_state_now[angle_index], player_accelerations[angle_index]);
+
+            double center_now_x = player_state_next[angle_index].center.x;
+            double center_now_y = player_state_next[angle_index].center.y;
+
+            for (size_t coin_index = 0; coin_index < state.coins.size(); ++coin_index) {
+
+                double X_cur_coin = state.coins[coin_index].center.x;
+                double Y_cur_coin = state.coins[coin_index].center.x;
+                double dist_to_coin =
+                    sqrt((center_now_x - X_cur_coin) * (center_now_x - X_cur_coin) +
+                    (center_now_y - Y_cur_coin) * (center_now_y - Y_cur_coin));
+
+                if (dist_to_coin <= state.players[player_id].radius +
+                    state.coins[coin_index].radius)
+                {
+                    return BestMoveToCoin(state.time_delta * quant_number,
+                                          player_accelerations[angle_index], coin_index);
+                }
+            }
+        }
+        player_state_now = player_state_next;
+    }
+
+    ab::Acceleration acceleration;
+    acceleration.x = 0;
+    acceleration.y = 0;
+    return BestMoveToCoin(-1, acceleration, -1);
+}
+
+} // namespace
+
+ab::Acceleration Strategy::GetTurn(const ab::FieldState& state, const ab::PlayerId player_id)
+{
+    size_t players_number = state.players.size();
+    std::vector<BestMoveToCoin> best_moves;
+
+    for (int player_index = 0; player_index < players_number; ++player_index)
+        best_moves.push_back(GetBestMove(state, player_index));
+
+    int aim_coin = best_moves[player_id].coin_id;
+    if (-1 == aim_coin) {
+        ab::Acceleration acceleration;
+        acceleration.x = 0;
+        acceleration.y = 0;
+        return acceleration;
+    }
+
+    double best_time_to_coin = best_moves[player_id].best_time;
+    for (int player_index = 0; player_index < players_number; ++player_index) {
+        if (best_moves[player_index].coin_id == aim_coin &&
+            best_moves[player_index].best_time < best_time_to_coin)
+        {
+            ab::Acceleration acceleration;
+            acceleration.x = 0;
+            acceleration.y = 0;
+            return acceleration;
+        }
+    }
+    return best_moves[player_id].best_acceleration;
 }
