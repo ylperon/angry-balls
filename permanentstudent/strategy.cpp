@@ -1,9 +1,8 @@
-#include <vector>
-#include <math.h>
-
-#include "strategy_interface.h"
 #include "strategy.h"
 #include "basics.h"
+
+#include <vector>
+#include <cmath>
 
 const double PI = acos(-1.0);
 

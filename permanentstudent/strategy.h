@@ -1,7 +1,5 @@
 #pragma once
 
-#include <math.h>
-
 #include "basics.h"
 #include "strategy_interface.h"
 
