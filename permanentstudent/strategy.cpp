@@ -7,7 +7,7 @@
 
 namespace {
 
-static const double PI = acos(-1.0);
+static const double kPi = acos(-1.0);
 static const size_t kAngleStepNumber = 10000;
 
 struct BestMoveToCoin
@@ -23,7 +23,6 @@ struct BestMoveToCoin
     {
     }
 };
-
 
 ab::Player GetNextState(const ab::FieldState& state, const ab::Player& previous_state,
                         const ab::Acceleration& acceleration)
@@ -85,7 +84,7 @@ ab::Player GetNextState(const ab::FieldState& state, const ab::Player& previous_
         double angle = asin((velocity_now_x * center_mid_y - velocity_now_y * center_mid_x) /
                             (absolute_velocity * dist_to_center));
 
-        double angle_to_rotate = PI + 2 * angle;
+        double angle_to_rotate = kPi + 2 * angle;
         double velocity_next_x = velocity_now_x * cos(angle_to_rotate) -
             velocity_now_y * sin(angle_to_rotate);
         double velocity_next_y = velocity_now_x * sin(angle_to_rotate) +
@@ -108,7 +107,7 @@ BestMoveToCoin GetBestMove(const ab::FieldState& state, const ab::PlayerId playe
     std::vector<ab::Player> player_state_now(kAngleStepNumber), player_state_next(kAngleStepNumber);
 
     for (size_t angle_index = 0; angle_index < kAngleStepNumber; ++angle_index) {
-        double curAngle = 2 * PI * angle_index / kAngleStepNumber;
+        double curAngle = 2 * kPi * angle_index / kAngleStepNumber;
         player_accelerations[angle_index].x = cos(curAngle);
         player_accelerations[angle_index].y = sin(curAngle);
         player_state_now[angle_index] = state.players[player_id];
