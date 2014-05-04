@@ -1,6 +1,5 @@
 #pragma once
 
-#include "io_server.hpp"
 #include "server_socket.hpp"
 
 namespace tanyatik {
@@ -132,7 +131,7 @@ class IOServer {
 private:
     ServerSocket server_socket_; 
     DescriptorManager descriptor_manager_;
-    IOHandlerCreator &io_handler_creator_;
+    std::shared_ptr<IOHandlerCreator> io_handler_creator_;
 
     typedef typename IOHandlerCreator::InputHandler InputHandler;
     typedef typename IOHandlerCreator::OutputHandler OutputHandler;
@@ -163,10 +162,10 @@ private:
 
     void addIOHandlers(std::shared_ptr<IODescriptor> descriptor) {
         input_handlers_.insert(std::make_pair(descriptor->getDescriptor(), 
-                    io_handler_creator_.createInputHandler(*descriptor)));
+                    io_handler_creator_->createInputHandler(*descriptor)));
 
         output_handlers_.insert(std::make_pair(descriptor->getDescriptor(), 
-                    io_handler_creator_.createOutputHandler(*descriptor)));
+                    io_handler_creator_->createOutputHandler(*descriptor)));
     }
  
     InputHandler getInputHandler(int descriptor) {
@@ -184,9 +183,18 @@ private:
         }
         return found->second;
     }
+    
+    bool hasOutputMessages(int descriptor) { // stub
+        return true;
+    }
+
+    typename OutputHandler::OutputBuffer getOutputBuffer(int descriptor) {
+        // stub
+        return typename OutputHandler::OutputBuffer();
+    }
 
 public:
-    IOServer(IOServerConfig config, IOHandlerCreator creator) :
+    IOServer(IOServerConfig config, std::shared_ptr<IOHandlerCreator> creator) :
         server_socket_(InternetAddress(config.address, config.port)),
         io_handler_creator_(creator)
         {} 
@@ -202,22 +210,19 @@ public:
 
                 } else if (server_socket_ == event.getDescriptor()) {
                     registerNewConnection();
-
-                    continue;
                 } else if (event.input()) {
                     InputHandler in_handler = getInputHandler(event.getDescriptor());
                     bool handled = in_handler.handleInput();
                     if (handled) {
                         event.setReadyForWriting();
                     }
-
-                    continue;
                 } else if (event.output()) {
-                    OutputHandler out_handler = getOutputHandler(event.getDescriptor());
-                    out_handler.handleOutput();
+                    if (hasOutputMessages(event.getDescriptor())) { 
+                        auto out_buffer = getOutputBuffer(event.getDescriptor());
+                        OutputHandler out_handler = getOutputHandler(event.getDescriptor());
+                        out_handler.handleOutput(out_buffer);
+                    }
 
-
-                    continue;
                 } else {
                     continue;
                 }
