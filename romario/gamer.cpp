@@ -3,6 +3,8 @@
 
 //-------------------------------------------------------------------------------------------------
 
+namespace ab {
+
 IOClient::IOClient()
 {
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -140,3 +142,6 @@ int main(int argc, char const *argv[]) {
 
     return 0;
 }
+
+}
+

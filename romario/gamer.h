@@ -14,6 +14,7 @@
 //#include "../permanentstudent/strategy.h"
 #include "../util/basics.h"
 
+namespace ab {
 
 class IOClient
 {
@@ -47,3 +48,6 @@ private:
     size_t id_;
     Strategy strategy_;
 };
+
+}
+
