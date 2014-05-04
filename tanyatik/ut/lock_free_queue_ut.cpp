@@ -18,7 +18,7 @@ TEST(LockFreeQueue, push) {
     queue.push(1);
     queue.push(2);
 }
-TEST(LockFreeQueue, dequeue) {
+TEST(LockFreeQueue, tryPop) {
     LockFreeQueue<int> queue;
     queue.push(1);
     queue.push(2);
@@ -26,14 +26,14 @@ TEST(LockFreeQueue, dequeue) {
     int pop = 0;
 
     ASSERT_FALSE(queue.empty());
-    bool result = queue.dequeue(&pop);
+    bool result = queue.tryPop(&pop);
     ASSERT_TRUE(result);
     ASSERT_EQ(1, pop);
-    result = queue.dequeue(&pop);
+    result = queue.tryPop(&pop);
     ASSERT_TRUE(result);
     ASSERT_EQ(2, pop);
 
-    result = queue.dequeue(&pop);
+    result = queue.tryPop(&pop);
     ASSERT_FALSE(result);
     ASSERT_TRUE(queue.empty());
 }
@@ -54,7 +54,7 @@ TEST(LockFreeQueue, multithread_push) {
     // EXPECT NO FAILURE
 }
 
-TEST(LockFreeQueue, multithread_dequeue) {
+TEST(LockFreeQueue, multithread_tryPop) {
     LockFreeQueue<int> queue;
 
     std::vector<std::thread> readers;
@@ -68,7 +68,7 @@ TEST(LockFreeQueue, multithread_dequeue) {
     for (int reader = 0; reader < READERS_COUNT; ++reader) {
         readers.emplace_back(std::thread([reader, &queue, &read_result]() { 
             int pop = 0;
-            queue.dequeue(&pop);
+            queue.tryPop(&pop);
             read_result[reader] = pop;
         } ));
     }
@@ -96,13 +96,13 @@ void writeProcedure(LockFreeQueue<int> *queue, const std::vector<int> &data) {
 void readProcedure(LockFreeQueue<int> *queue, std::vector<int> *result_data) {
     for (int i = 0; i < ELEMENTS_COUNT; ++i) {
         int value = 0;
-        while (!queue->dequeue(&value)) 
+        while (!queue->tryPop(&value)) 
             ;
         result_data->push_back(value); 
     }
 }
 
-TEST(LockFreeQueue, multithread_push_dequeue) {
+TEST(LockFreeQueue, multithread_push_tryPop) {
     testMultithreadContainer<LockFreeQueue>(writeProcedure, 
             readProcedure, 
             THREADS_COUNT, 

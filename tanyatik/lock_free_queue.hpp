@@ -34,7 +34,24 @@ private:
 
     QueueSnapshotPtr old_snapshot_list_;
 
-    void pushBody(ListNode *node) {
+public: 
+    LockFreeQueue() :
+        current_snapshot_(new QueueSnapshot()),
+        active_threads_(0),
+        old_snapshot_list_(nullptr)
+        {}
+
+    ~LockFreeQueue() {
+        QueueSnapshot *current = current_snapshot_.load();
+        incActiveThreads();
+        decActiveThreads();
+        deleteList(current->push_queue);
+        deleteList(current->pop_queue);
+        delete current;
+    }
+
+    void push(T data) {
+        ListNode *node(new ListNode(data));
         // make a copy
         QueueSnapshot *new_snapshot(new QueueSnapshot());
 
@@ -59,33 +76,7 @@ private:
         }
     }
 
-public: 
-    LockFreeQueue() :
-        current_snapshot_(new QueueSnapshot()),
-        active_threads_(0),
-        old_snapshot_list_(nullptr)
-        {}
-
-    ~LockFreeQueue() {
-        QueueSnapshot *current = current_snapshot_.load();
-        incActiveThreads();
-        decActiveThreads();
-        deleteList(current->push_queue);
-        deleteList(current->pop_queue);
-        delete current;
-    }
-
-    void push(T data) {
-        ListNode *node(new ListNode(data));
-        pushBody(node);
-    }
-/*
-    void enqueue(T &&data) {
-        ListNode *node(new ListNode(data));
-        pushBody(node);
-    }
-*/
-    bool dequeue(T *data) {
+    bool tryPop(T *data) {
         incActiveThreads();        
         QueueSnapshot *new_snapshot = nullptr;
 
