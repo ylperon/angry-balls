@@ -41,8 +41,6 @@ struct FieldState
     FieldStateId id;
 
     double radius;
-    double ball_radius;
-    double coin_radius;
     double time_delta;
     double velocity_max;
 
