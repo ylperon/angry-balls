@@ -2,6 +2,8 @@
 
 #include "basics.h"
 
+namespace ab {
+
 class StrategyInterface
 {
 public:
@@ -11,3 +13,5 @@ public:
     {
     }
 };
+
+} // namespace ab

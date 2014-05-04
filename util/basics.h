@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace ab {
+
 struct Point
 {
     double x;
@@ -52,3 +54,5 @@ struct FieldState
 
     std::vector<Coin> coins;
 };
+
+} // namespace ab
