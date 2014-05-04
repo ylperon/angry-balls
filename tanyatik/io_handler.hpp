@@ -2,6 +2,8 @@
 
 namespace tanyatik {
 
+typedef std::vector<char> Buffer;
+
 template<typename ProtocolHandler>
 class AsyncInputHandler {
 private:
@@ -25,9 +27,12 @@ public:
             if (recv_result > 0) {
                 // read successful
                 char *buffer_end = buffer + recv_result;
-                std::vector<char> data_chunk(buffer, buffer_end);
+                Buffer data_chunk(buffer, buffer_end);
 
-                return protocol_.processDataChunk(data_chunk);
+                bool result = protocol_.processDataChunk(data_chunk);
+                if (result) {
+                    return result;
+                }
             } else if (recv_result < 0) {
                 if (errno == EWOULDBLOCK || errno == EAGAIN) {
                     // end data portion
@@ -49,18 +54,20 @@ template<typename ProtocolHandler>
 class AsyncOutputHandler {
 private:
     IODescriptor &descriptor_;
-    std::vector<char> buffer_;
+    Buffer buffer_;
     ProtocolHandler protocol_;
 
 public:
+    typedef Buffer OutputBuffer;
+
     AsyncOutputHandler(IODescriptor &descriptor, ProtocolHandler protocol) :
         descriptor_(descriptor),
         protocol_(protocol)
         {}
 
-    void handleOutput() {
+    void handleOutput(Buffer buffer) {
         if (buffer_.empty()) {
-            buffer_ = protocol_.getRespond();
+            buffer_ = protocol_.getRespond(buffer);
         }
 
         auto result = ::write(descriptor_.getDescriptor(), buffer_.data(), buffer_.size());
@@ -71,7 +78,7 @@ public:
             }
             throw std::runtime_error("write failed");
         }
-        buffer_ = std::vector<char>();
+        buffer_ = Buffer();
     }
 };
 
