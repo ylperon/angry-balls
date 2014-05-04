@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../io_descriptor.hpp"
+#include "../io_handler.hpp"
 #include "../protocol.hpp"
 
 namespace tanyatik {
