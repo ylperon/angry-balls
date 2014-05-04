@@ -40,8 +40,8 @@ public:
     ~Gamer();
 
     bool ConnectionToServer(size_t port);
-    void StartGame() const;
-    std::string Turn(const FieldState& field_state) const;
+    void Game() const;
+    std::string Turn(const std::string& state) const;
 
 private:
     IOClient client_;
@@ -50,4 +50,3 @@ private:
 };
 
 }
-

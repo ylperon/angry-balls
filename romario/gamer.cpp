@@ -101,13 +101,11 @@ bool Gamer<Strategy>::ConnectionToServer(size_t port)
 }
 
 template <class Strategy>
-void Gamer<Strategy>::StartGame() const 
+void Gamer<Strategy>::Game() const 
 {
     std::string state;
     while (client_.RecvAll(state, 0) != -1) {
-        FieldState field_state;
-        // parse state in field_state
-        std::string turn = Turn(field_state);
+        std::string turn = Turn(state);
         int send_result = client_.SendAll(turn, 0);
         if (send_result == -1) {
             return;
@@ -116,9 +114,14 @@ void Gamer<Strategy>::StartGame() const
 }
 
 template <class Strategy>
-std::string Gamer<Strategy>::Turn(const FieldState& field_state) const
+std::string Gamer<Strategy>::Turn(const std::string& state) const
 {
-    return std::string();
+    FieldState field_state;
+    // parse state in field_state
+    Acceleration acceleration = strategy_.TODO(field_state);
+    std::string turn;
+    // make turn json
+    return turn;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -126,22 +129,11 @@ std::string Gamer<Strategy>::Turn(const FieldState& field_state) const
 int main(int argc, char const *argv[]) {
 
     size_t port = 1234;
-    //Gamer<MovingStrategies> gamer;
-
-    // request to start a game
-    //while (!gamer.ConnectionToServer(port)) {}
-
-    //strategy_.setState();
-    
-
-
-    // get data from server
-    //FieldState field_state;
-
-
+    Gamer<Strategy> gamer;
+    while (!gamer.ConnectionToServer(port)) {}
+    gamer.Game();
 
     return 0;
 }
 
 }
-
