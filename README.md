@@ -130,7 +130,7 @@
 
     {
         "type" : "TURN",
-        "state_id" : "<uint32>",
+        "state_id" : "<uint64>",
         "id" : "<uint32>",
         "a_x" : "<float>",
         "a_y" : "<float>"
