@@ -14,4 +14,14 @@ public:
     }
 };
 
+class PredictiveStrategy : public StrategyInterface
+{
+public:
+    Acceleration GetTurn(const FieldState& state, const PlayerId player_id);
+
+    virtual ~PredictiveStrategy()
+    {
+    }
+};
+
 } // namespace ab
