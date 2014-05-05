@@ -2,64 +2,80 @@
 
 #include <map>
 
+#include "types.hpp"
 #include "io_handler.hpp"
 #include "thread_pool.hpp"
 #include "request_handler.hpp"
 
 namespace tanyatik {
 
-class TaskHandler {
+class ThreadPoolTaskHandler : public IOTaskHandler {
 private:
     ThreadPool thread_pool_;
     std::shared_ptr<RequestHandler> request_handler_;
+    std::map<int, LockFreeQueue<Buffer>> result_queues_;
+
+    void addRequestTask(int connection_id, Buffer request) {
+        thread_pool_.submit(std::bind(&RequestHandler::handleRequest, 
+                    request_handler_, 
+                    request, 
+                    connection_id));
+    }
 
 public:
-    typedef AsyncInputHandler InputHandler;
-    typedef AsyncOutputHandler OutputHandler;
-
-    struct TaskCreator {
+    struct ThreadPoolTaskCreator : public TaskCreator {
     private:
-        TaskHandler *task_handler_;
+        ThreadPoolTaskHandler *task_handler_;
         int connection_id_;
        
     public:
-        TaskCreator(TaskHandler *task_handler, int connection_id) :
+        ThreadPoolTaskCreator(ThreadPoolTaskHandler *task_handler, int connection_id) :
             task_handler_(task_handler),
             connection_id_(connection_id)
             {}
      
-        void operator()(Buffer request) {
+        void addTask(Buffer request) {
             task_handler_->addRequestTask(connection_id_, request);
         }
     }; 
 
-    TaskHandler(std::shared_ptr<RequestHandler> request_handler) :
+    ThreadPoolTaskHandler(std::shared_ptr<RequestHandler> request_handler) :
         thread_pool_(),
-        request_handler_(request_handler)
-        {}
+        request_handler_(request_handler) {
+            request_handler_->setResultHandler(this);
+        }
 
-    ~TaskHandler() {}
+    ~ThreadPoolTaskHandler() {}
 
-    void addRequestTask(int connection_id, Buffer request) {
-        thread_pool_.submit(std::bind(&RequestHandler::handleRequest, request_handler_, request));
-    }
-
-    AsyncInputHandler createInputHandler(std::shared_ptr<IODescriptor> descriptor) {
+    virtual std::shared_ptr<InputHandler> createInputHandler
+            (std::shared_ptr<IODescriptor> descriptor) {
         // after input is completed, we need to put a task into thread pool inside TaskHandler
         // after task is completed, TaskHandler will put result back in IOServer
-        TaskCreator taskCreator(this, descriptor->getDescriptor());
+        auto taskCreator = std::make_shared<ThreadPoolTaskCreator>
+            (this, descriptor->getDescriptor());
 
-        return AsyncInputHandler(descriptor, std::make_shared<InputHttpProtocol>(taskCreator));
+        return std::make_shared<AsyncInputHandler>
+                (descriptor, std::make_shared<InputHttpProtocol>(taskCreator));
     }
 
-    AsyncOutputHandler createOutputHandler(std::shared_ptr<IODescriptor> descriptor) {
-        return AsyncOutputHandler(descriptor, std::make_shared<OutputHttpProtocol>());
+    virtual std::shared_ptr<OutputHandler> createOutputHandler
+            (std::shared_ptr<IODescriptor> descriptor) {
+        return std::make_shared<AsyncOutputHandler>
+                (descriptor, std::make_shared<OutputHttpProtocol>());
     }
-/*
-    void putResult(int connection_id, Buffer result) {
-        io_server_->push(std::make_pair(connection_id, result));
+    
+    virtual void putResult(int connection_id, Buffer result) {
+        //std::cerr << "PUT RESULT [" << result.get() << "]\n";
+        result_queues_[connection_id].push(result);
     }
-*/
+
+    virtual void getResult(int connection_id, Buffer *result) {
+        result_queues_[connection_id].tryPop(result);
+    }
+
+    virtual bool hasResult(int connection_id) {
+        return !result_queues_[connection_id].empty();
+    }
 }; 
 
 } // namespace tanyatik
