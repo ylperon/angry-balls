@@ -9,29 +9,6 @@
 
 namespace tanyatik {
 
-class InputProtocol {
-protected:
-    typedef std::function<void(Buffer)> Callback;
-
-    Callback callback_;
-
-    void sendResult(Buffer buffer) {
-        callback_(buffer);
-    }
-
-public:
-    InputProtocol(Callback callback) :
-        callback_(callback)
-        {}
-
-    virtual bool processDataChunk(Buffer buffer) = 0;
-};
-
-class OutputProtocol {
-public:
-    virtual Buffer getRespond(Buffer) = 0;
-};
-
 class InputLengthPrefixedProtocol : public InputProtocol {
 private:
     enum StateType {
@@ -57,8 +34,9 @@ private:
     State state_;
 
 public:
-    InputLengthPrefixedProtocol(Callback callback, size_t length_size = 4) :
-        InputProtocol(callback),
+    InputLengthPrefixedProtocol(std::shared_ptr<TaskCreator> task_creator, 
+            size_t length_size = 4) :
+        InputProtocol(task_creator),
         length_size_(length_size),
         state_(length_size)
         {}
@@ -120,7 +98,7 @@ public:
                                 buffer_seek + remaining_length, 
                                 state_.buffer.begin() + state_.read_length);
                         buffer_seek += remaining_length;
-                        sendResult(state_.buffer);
+                        sendRequest(state_.buffer);
                         sent = true;
 
                         state_ = State(length_size_);
@@ -159,9 +137,8 @@ private:
     Buffer buffer_;
 
 public:
-    template<typename T>
-    InputHttpProtocol(T callback) :
-        InputProtocol(Callback(callback))
+    InputHttpProtocol(std::shared_ptr<TaskCreator> task_creator) :
+        InputProtocol(task_creator)
         {}
 
     virtual bool processDataChunk(Buffer buffer) {
@@ -179,7 +156,7 @@ public:
                 buffer_.push_back('\n');
                 buffer_.push_back('\0');
 
-                sendResult(buffer_);
+                sendRequest(buffer_);
                 sent = true;
 
                 buffer_ = Buffer();
