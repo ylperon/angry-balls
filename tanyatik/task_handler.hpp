@@ -20,16 +20,16 @@ public:
     struct TaskCreator {
     private:
         TaskHandler *task_handler_;
-        int client_id_;
+        int connection_id_;
        
     public:
-        TaskCreator(TaskHandler *task_handler, int client_id) :
+        TaskCreator(TaskHandler *task_handler, int connection_id) :
             task_handler_(task_handler),
-            client_id_(client_id)
+            connection_id_(connection_id)
             {}
      
         void operator()(Buffer request) {
-            task_handler_->addRequestTask(client_id_, request);
+            task_handler_->addRequestTask(connection_id_, request);
         }
     }; 
 
@@ -40,7 +40,7 @@ public:
 
     ~TaskHandler() {}
 
-    void addRequestTask(int client_id, Buffer request) {
+    void addRequestTask(int connection_id, Buffer request) {
         thread_pool_.submit(std::bind(&RequestHandler::handleRequest, request_handler_, request));
     }
 
@@ -56,8 +56,8 @@ public:
         return OutputHandler(descriptor, OutputHttpProtocol());
     }
 /*
-    void putResult(int client_id, Buffer result) {
-        io_server_->push(std::make_pair(client_id, result));
+    void putResult(int connection_id, Buffer result) {
+        io_server_->push(std::make_pair(connection_id, result));
     }
 */
 }; 
