@@ -1,3 +1,5 @@
+#pragma once
+
 #include <mutex>
 #include <map>
 
@@ -12,8 +14,6 @@ private:
     std::mutex result_queues_mutex_;
 
 public:
-    ProxyRespondHandler() {}
-
     virtual void putResult(int connection_id, Buffer result) {
         std::lock_guard<std::mutex> lock(result_queues_mutex_);
         result_queues_[connection_id].push(result);

@@ -25,8 +25,8 @@ public:
     void addTask(int connection_id, Buffer request) {
         thread_pool_.submit(std::bind(&RequestHandler::handleRequest, 
                     request_handler_, 
-                    request, 
-                    connection_id));
+                    connection_id,
+                    request));
     }
 };
 

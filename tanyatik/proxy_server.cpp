@@ -18,6 +18,7 @@
 #include "protocol.hpp"
 #include "thread_pool.hpp"
 #include "task_handler.hpp"
+#include "respond_handler.hpp"
 
 namespace tanyatik {
 

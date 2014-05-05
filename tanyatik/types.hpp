@@ -72,8 +72,20 @@ public:
 };
 
 class RequestHandler {
+private:
+    std::shared_ptr<RespondHandler> respond_handler_;
+
+protected:
+    void commitResult(int connection_id, Buffer result) {
+        respond_handler_->putResult(connection_id, result);
+    }
+    
 public:
-    virtual void handleRequest(Buffer request, int connection_id) = 0;
+    RequestHandler(std::shared_ptr<RespondHandler> respond_handler) :
+        respond_handler_(respond_handler)
+        {}
+
+    virtual void handleRequest(int connection_id, Buffer request) = 0;
 
     virtual ~RequestHandler() {}
 };
