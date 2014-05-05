@@ -4,7 +4,7 @@
 
 namespace tanyatik {
 
-class AsyncInputHandler {
+class AsyncInputHandler : public InputHandler {
 private:
     std::shared_ptr<IODescriptor> descriptor_;
     std::shared_ptr<InputProtocol> protocol_;
@@ -50,7 +50,7 @@ public:
     }
 };
 
-class AsyncOutputHandler {
+class AsyncOutputHandler : public OutputHandler {
 private:
     std::shared_ptr<IODescriptor> descriptor_;
     Buffer buffer_;
@@ -65,7 +65,7 @@ public:
         protocol_(protocol)
         {}
 
-    void handleOutput(Buffer buffer) {
+    bool handleOutput(Buffer buffer) {
         if (buffer_.empty()) {
             buffer_ = protocol_->getRespond(buffer);
         }
@@ -74,11 +74,12 @@ public:
         if (result == -1) {
             if (errno == EWOULDBLOCK || errno == EAGAIN) {
                 // remembered this buffer, will try to put it next time
-                return; 
+                return false; 
             }
             throw std::runtime_error("write failed");
         }
         buffer_ = Buffer();
+        return true;
     }
 };
 
