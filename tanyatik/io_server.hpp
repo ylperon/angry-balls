@@ -162,10 +162,10 @@ private:
 
     void addIOHandlers(std::shared_ptr<IODescriptor> descriptor) {
         input_handlers_.insert(std::make_pair(descriptor->getDescriptor(), 
-                    io_handler_creator_->createInputHandler(*descriptor)));
+                    io_handler_creator_->createInputHandler(descriptor)));
 
         output_handlers_.insert(std::make_pair(descriptor->getDescriptor(), 
-                    io_handler_creator_->createOutputHandler(*descriptor)));
+                    io_handler_creator_->createOutputHandler(descriptor)));
     }
  
     InputHandler getInputHandler(int descriptor) {
@@ -212,8 +212,8 @@ public:
                     registerNewConnection();
                 } else if (event.input()) {
                     InputHandler in_handler = getInputHandler(event.getDescriptor());
-                    bool handled = in_handler.handleInput();
-                    if (handled) {
+                    bool finished = in_handler.handleInput();
+                    if (finished) {
                         event.setReadyForWriting();
                     }
                 } else if (event.output()) {
