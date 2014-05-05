@@ -22,56 +22,16 @@
 
 namespace tanyatik {
 
-class ProxyRequestHandler {
-public:
-    static Buffer handleRequest(Buffer request) {
-        std::cerr << "HANDLE REQUEST\n";
-        std::cerr << "REQUEST [" << request.data() << "]\n";
-        std::string respond_string("HTTP/1.1 200 OK\n\n<html>hello<html>\n");
-        Buffer respond_buffer(respond_string.begin(), respond_string.end()); 
-
-        return respond_buffer;
-    }
-};
-
-struct ProxyIOHandlerCreator {
-private:
-    std::shared_ptr<TaskHandler<ProxyRequestHandler>> task_handler_;
-
-public:
-    typedef AsyncInputHandler<InputHttpProtocol> InputHandler;
-    typedef AsyncOutputHandler<OutputHttpProtocol> OutputHandler;
-
-    ProxyIOHandlerCreator(std::shared_ptr<TaskHandler<ProxyRequestHandler>> task_handler) :
-        task_handler_(task_handler)
-        {}
-
-    InputHandler createInputHandler(IODescriptor &descriptor) {
-        // after input is completed, we need to put a task into thread pool inside TaskHandler
-        // after task is completed, TaskHandler will put result back in IOServer
-        typename TaskHandler<ProxyRequestHandler>::TaskCreator
-            taskCreator(task_handler_, descriptor.getDescriptor());
-
-        return InputHandler(descriptor, 
-                InputHttpProtocol(taskCreator));
-    }
-
-    OutputHandler createOutputHandler(IODescriptor &descriptor) {
-        return OutputHandler(descriptor, OutputHttpProtocol());
-    }
-};
-
 class ProxyServer {
 private:
-    std::shared_ptr<TaskHandler<ProxyRequestHandler>> task_handler_;
-    std::shared_ptr<ProxyIOHandlerCreator> io_handler_creator_;
-    IOServer<EpollDescriptorManager, ProxyIOHandlerCreator> io_server_;
+    std::shared_ptr<TaskHandler> task_handler_;
+    IOServer<EpollDescriptorManager, TaskHandler> io_server_;
 
 public:
     ProxyServer() :
-        task_handler_(new TaskHandler<ProxyRequestHandler>()),
-        io_handler_creator_(new ProxyIOHandlerCreator(task_handler_)),
-        io_server_(IOServerConfig(), io_handler_creator_)
+        task_handler_(std::shared_ptr<TaskHandler>(new TaskHandler(
+                std::shared_ptr<ProxyRequestHandler>(new ProxyRequestHandler)))),
+        io_server_(IOServerConfig(), task_handler_)
         {}
 
     void run() {

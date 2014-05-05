@@ -4,22 +4,26 @@
 
 #include "io_handler.hpp"
 #include "thread_pool.hpp"
+#include "request_handler.hpp"
 
 namespace tanyatik {
 
-template<typename RequestHandler>
 class TaskHandler {
 private:
     ThreadPool thread_pool_;
+    std::shared_ptr<RequestHandler> request_handler_;
 
 public:
+    typedef AsyncInputHandler<InputHttpProtocol> InputHandler;
+    typedef AsyncOutputHandler<OutputHttpProtocol> OutputHandler;
+
     struct TaskCreator {
     private:
-        std::shared_ptr<TaskHandler> task_handler_;
+        TaskHandler *task_handler_;
         int client_id_;
        
     public:
-        TaskCreator(std::shared_ptr<TaskHandler> task_handler, int client_id) :
+        TaskCreator(TaskHandler *task_handler, int client_id) :
             task_handler_(task_handler),
             client_id_(client_id)
             {}
@@ -29,13 +33,27 @@ public:
         }
     }; 
 
-    TaskHandler() :
-        thread_pool_(1) {}
+    TaskHandler(std::shared_ptr<RequestHandler> request_handler) :
+        thread_pool_(),
+        request_handler_(request_handler)
+        {}
 
     ~TaskHandler() {}
 
     void addRequestTask(int client_id, Buffer request) {
-        thread_pool_.submit(std::bind(RequestHandler::handleRequest, request));
+        thread_pool_.submit(std::bind(&RequestHandler::handleRequest, request_handler_, request));
+    }
+
+    InputHandler createInputHandler(std::shared_ptr<IODescriptor> descriptor) {
+        // after input is completed, we need to put a task into thread pool inside TaskHandler
+        // after task is completed, TaskHandler will put result back in IOServer
+        TaskCreator taskCreator(this, descriptor->getDescriptor());
+
+        return InputHandler(descriptor, InputHttpProtocol(taskCreator));
+    }
+
+    OutputHandler createOutputHandler(std::shared_ptr<IODescriptor> descriptor) {
+        return OutputHandler(descriptor, OutputHttpProtocol());
     }
 /*
     void putResult(int client_id, Buffer result) {
