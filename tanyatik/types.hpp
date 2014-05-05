@@ -10,32 +10,38 @@ class IODescriptor;
 
 class TaskCreator {
 public:
-    virtual void addTask(Buffer request) = 0;
+    virtual void addTask(int connection_id, Buffer request) = 0;
+    virtual ~TaskCreator() {}
 };
 
 class InputHandler {
 public:
     virtual bool handleInput() = 0;
+    virtual ~InputHandler() {}
 };
 
 class OutputHandler {
 public:
     virtual bool handleOutput(Buffer buffer) = 0;
+    virtual ~OutputHandler() {}
 };
 
 class InputProtocol {
 private:
     std::shared_ptr<TaskCreator> task_creator_;
+    int connection_id_;
 
 protected:
     void sendRequest(Buffer buffer) {
-        task_creator_->addTask(buffer);
+        task_creator_->addTask(connection_id_, buffer);
     }
 
 public:
-    InputProtocol(std::shared_ptr<TaskCreator> task_creator) :
-        task_creator_(task_creator)
+    InputProtocol(std::shared_ptr<TaskCreator> task_creator, int connection_id) :
+        task_creator_(task_creator),
+        connection_id_(connection_id)
         {}
+    virtual ~InputProtocol() {}
 
     virtual bool processDataChunk(Buffer buffer) = 0;
 };
@@ -43,24 +49,33 @@ public:
 class OutputProtocol {
 public:
     virtual Buffer getRespond(Buffer) = 0;
+    virtual ~OutputProtocol() {}
 };
 
-class IOTaskHandler {
+class IOHandlerFactory {
 public:
     virtual std::shared_ptr<InputHandler> createInputHandler
-        (std::shared_ptr<IODescriptor> descriptor) = 0;
+        (int descriptor) = 0;
     virtual std::shared_ptr<OutputHandler> createOutputHandler
-        (std::shared_ptr<IODescriptor> descriptor) = 0;
+        (int descriptor) = 0;
 
+    virtual ~IOHandlerFactory() {}
+};
+
+class RespondHandler {
+public:
     virtual void putResult(int connection_id, Buffer result) = 0;
     virtual void getResult(int connection_id, Buffer *result) = 0;
     virtual bool hasResult(int connection_id) = 0;
+    
+    virtual ~RespondHandler() {}
 };
 
 class RequestHandler {
 public:
-    virtual void setResultHandler(IOTaskHandler *task_handler) = 0;
     virtual void handleRequest(Buffer request, int connection_id) = 0;
+
+    virtual ~RequestHandler() {}
 };
 
 } // namespace tanyatik

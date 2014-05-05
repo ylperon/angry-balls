@@ -23,6 +23,8 @@ private:
     struct epoll_event events_[MAX_EVENTS];
     size_t events_ready_count_;
 
+    std::map<int, std::shared_ptr<IODescriptor>> descriptors_;
+
 public:
     class EpollEvent {
     private:
@@ -60,7 +62,7 @@ public:
                     event_->data.fd, 
                     event_);
             if (result == -1) {
-                throw std::runtime_error("Error in epoll_ctl");
+                throw std::runtime_error("Can not set file descriptor for writing");
             }
         }
     };
@@ -108,7 +110,7 @@ public:
     EpollDescriptorManager() :
         epoll_descriptor_(epoll_create1(0)) {}
 
-    void addWatchedDescriptor(IODescriptor *descriptor) {
+    void addWatchedDescriptor(std::shared_ptr<IODescriptor> descriptor) {
         struct epoll_event event;
 
         event.data.fd = descriptor->getDescriptor();
@@ -120,12 +122,12 @@ public:
                 &event);
 
         if (result == -1) {
-            throw std::runtime_error("Fail in epoll_ctl ADD");
+            throw std::runtime_error("Fail to add watched descriptor");
         }
+        descriptors_.insert(std::make_pair(descriptor->getDescriptor(), descriptor));
     }
 
-    void removeDescriptor(int descriptor) {
-
+    void removeWatchedDescriptor(int descriptor) {
         struct epoll_event event;
 
         event.data.fd = descriptor;
@@ -137,8 +139,14 @@ public:
                 &event);
 
         if (result == -1) {
-            throw std::runtime_error("Fail in epoll_ctl DEL");
+            throw std::runtime_error("Fail to remove watched descriptor");
         }
+
+        auto found = descriptors_.find(descriptor);
+        if (found == descriptors_.end()) {
+            throw std::logic_error("Descriptor to delete not found");
+        }
+        descriptors_.erase(found);
     }
     
 };
@@ -146,42 +154,36 @@ public:
 template<typename DescriptorManager>
 class IOServer {
 private:
-    ServerSocket server_socket_; 
+    std::shared_ptr<ServerSocket> server_socket_; 
     DescriptorManager descriptor_manager_;
-    std::shared_ptr<IOTaskHandler> io_handler_creator_;
+    std::shared_ptr<IOHandlerFactory> io_handler_factory_;
+    std::shared_ptr<RespondHandler> respond_handler_;
 
     std::map<int, std::shared_ptr<InputHandler>> input_handlers_;
     std::map<int, std::shared_ptr<OutputHandler>> output_handlers_;
 
-    std::vector<std::shared_ptr<IODescriptor>> descriptors_;
-
     bool keep_alive_;
 
 private:
-    void addDescriptor(std::shared_ptr<IODescriptor> descriptor) {
-        descriptors_.emplace_back(descriptor);
-    }
-
     void registerNewConnection() {
         while (true) {
-            std::shared_ptr<IODescriptor> new_descriptor = server_socket_.acceptNewConnection();
+            std::shared_ptr<IODescriptor> new_descriptor = server_socket_->acceptNewConnection();
 
             if (!new_descriptor) {
                 break;
             }
-           
-            addDescriptor(new_descriptor);
-            addIOHandlers(new_descriptor);
-            descriptor_manager_.addWatchedDescriptor(new_descriptor.get());
+          
+            addIOHandlers(new_descriptor->getDescriptor());
+            descriptor_manager_.addWatchedDescriptor(new_descriptor);
         }
     }
 
-    void addIOHandlers(std::shared_ptr<IODescriptor> descriptor) {
-        input_handlers_.insert(std::make_pair(descriptor->getDescriptor(), 
-                    io_handler_creator_->createInputHandler(descriptor)));
+    void addIOHandlers(int fd) {
+        input_handlers_.insert(std::make_pair(fd, 
+                    io_handler_factory_->createInputHandler(fd)));
 
-        output_handlers_.insert(std::make_pair(descriptor->getDescriptor(), 
-                    io_handler_creator_->createOutputHandler(descriptor)));
+        output_handlers_.insert(std::make_pair(fd, 
+                    io_handler_factory_->createOutputHandler(fd)));
     }
  
     std::shared_ptr<InputHandler> getInputHandler(int descriptor) {
@@ -200,51 +202,54 @@ private:
         return found->second;
     }
     
-    bool hasOutputMessages(int descriptor) { // stub
-        return io_handler_creator_->hasResult(descriptor); 
+    bool hasOutputMessages(int descriptor) {
+        return respond_handler_->hasResult(descriptor); 
     }
 
     Buffer getOutputMessage(int descriptor) {
         Buffer message;
-        io_handler_creator_->getResult(descriptor, &message); 
+        respond_handler_->getResult(descriptor, &message); 
         return message;
     }
 
 public:
-    IOServer(IOServerConfig config, std::shared_ptr<IOTaskHandler> creator, bool keep_alive) :
-        server_socket_(InternetAddress(config.address, config.port)),
-        io_handler_creator_(creator),
+    IOServer(IOServerConfig config, 
+            std::shared_ptr<IOHandlerFactory> factory, 
+            std::shared_ptr<RespondHandler> respond_handler,
+            bool keep_alive) :
+        server_socket_(std::make_shared<ServerSocket>(InternetAddress(config.address, config.port))),
+        io_handler_factory_(factory),
+        respond_handler_(respond_handler),
         keep_alive_(keep_alive)
         {} 
  
     void eventLoop() {
-        descriptor_manager_.addWatchedDescriptor(&server_socket_);
+        descriptor_manager_.addWatchedDescriptor(server_socket_);
 
         while (true) { 
             descriptor_manager_.getReadyDescriptors();
             for (auto event: descriptor_manager_) {
                 if (event.error()) {
-                    throw std::runtime_error("epoll error in file descriptor");
+                    throw std::runtime_error("Epoll indicates error in file descriptor");
 
-                } else if (server_socket_ == event.getDescriptor()) {
+                } else if (server_socket_->getDescriptor() == event.getDescriptor()) {
                     registerNewConnection();
+
                 } else if (event.input()) {
                     auto in_handler = getInputHandler(event.getDescriptor());
                     bool finished = in_handler->handleInput();
                     if (finished) {
-                        std::cerr << "EL: set ready " << event.getDescriptor();
                         event.setReadyForWriting();
                     }
+
                 } else if (event.output()) {
                     if (hasOutputMessages(event.getDescriptor())) { 
                         auto out_message = getOutputMessage(event.getDescriptor());
-                        auto out_handler = 
-                            getOutputHandler(event.getDescriptor());
+                        auto out_handler = getOutputHandler(event.getDescriptor());
+
                         bool finished = out_handler->handleOutput(out_message);
                         if (finished && !keep_alive_) {
-                            // stub
-                            descriptor_manager_.removeDescriptor(event.getDescriptor());
-                            ::close(event.getDescriptor());        
+                            descriptor_manager_.removeWatchedDescriptor(event.getDescriptor());
                         }
                     }
 

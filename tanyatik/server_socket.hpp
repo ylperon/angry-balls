@@ -97,7 +97,7 @@ public:
                 << new_fd << ", host " << hostname_buffer << ", port " << socket_buffer << std::endl;
         }
 
-        return std::shared_ptr<IODescriptor>(new IODescriptor(new_fd, non_blocking_));
+        return std::make_shared<IODescriptor>(new_fd, non_blocking_);
     }
 };
 

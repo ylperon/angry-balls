@@ -23,14 +23,20 @@ namespace tanyatik {
 
 class ProxyServer {
 private:
-    std::shared_ptr<IOTaskHandler> task_handler_;
+    std::shared_ptr<RespondHandler> respond_handler_;
+    std::shared_ptr<RequestHandler> request_handler_;
+    std::shared_ptr<TaskCreator> task_handler_;
     IOServer<EpollDescriptorManager> io_server_;
 
 public:
     ProxyServer() :
-        task_handler_(std::shared_ptr<IOTaskHandler>
-                (new ThreadPoolTaskHandler(std::make_shared<ProxyRequestHandler>()))),
-        io_server_(IOServerConfig(), task_handler_, false)
+        respond_handler_(std::make_shared<ProxyRespondHandler>()),
+        request_handler_(std::make_shared<ProxyRequestHandler>(respond_handler_)),
+        task_handler_(std::make_shared<ThreadPoolTaskHandler>(request_handler_)),
+        io_server_(IOServerConfig(), 
+                std::make_shared<ProxyHandlerFactory>(task_handler_), 
+                respond_handler_, 
+                false)
         {}
 
     void run() {
@@ -46,6 +52,7 @@ int main() {
         proxy_server.run();
     } catch(const std::exception &ex) {
         std::cerr << ex.what() << std::endl;
+        std::cerr << "Errno: " << errno << std::endl;
     }
     return 0;
 }

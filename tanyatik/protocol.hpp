@@ -35,8 +35,9 @@ private:
 
 public:
     InputLengthPrefixedProtocol(std::shared_ptr<TaskCreator> task_creator, 
+            int connection_id,
             size_t length_size = 4) :
-        InputProtocol(task_creator),
+        InputProtocol(task_creator, connection_id),
         length_size_(length_size),
         state_(length_size)
         {}
@@ -137,8 +138,8 @@ private:
     Buffer buffer_;
 
 public:
-    InputHttpProtocol(std::shared_ptr<TaskCreator> task_creator) :
-        InputProtocol(task_creator)
+    InputHttpProtocol(std::shared_ptr<TaskCreator> task_creator, int connection_id) :
+        InputProtocol(task_creator, connection_id)
         {}
 
     virtual bool processDataChunk(Buffer buffer) {
