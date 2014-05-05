@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.hpp"
 #include "server_socket.hpp"
 
 namespace tanyatik {
@@ -52,7 +53,7 @@ public:
         }
 
         void setReadyForWriting() {
-            event_->events = EPOLLOUT | EPOLLET;
+            event_->events = EPOLLOUT;
 
             auto result = epoll_ctl(epoll_descriptor_,
                     EPOLL_CTL_MOD, 
@@ -119,27 +120,42 @@ public:
                 &event);
 
         if (result == -1) {
-            throw std::runtime_error("Fail in epoll_ctl");
+            throw std::runtime_error("Fail in epoll_ctl ADD");
         }
     }
 
+    void removeDescriptor(int descriptor) {
+
+        struct epoll_event event;
+
+        event.data.fd = descriptor;
+        event.events = EPOLLIN | EPOLLET;
+
+        auto result = epoll_ctl(epoll_descriptor_.getDescriptor(), 
+                EPOLL_CTL_DEL, 
+                event.data.fd, 
+                &event);
+
+        if (result == -1) {
+            throw std::runtime_error("Fail in epoll_ctl DEL");
+        }
+    }
+    
 };
 
-template<typename DescriptorManager,
-    typename IOHandlerCreator>
+template<typename DescriptorManager>
 class IOServer {
 private:
     ServerSocket server_socket_; 
     DescriptorManager descriptor_manager_;
-    std::shared_ptr<IOHandlerCreator> io_handler_creator_;
+    std::shared_ptr<IOTaskHandler> io_handler_creator_;
 
-    typedef typename IOHandlerCreator::InputHandler InputHandler;
-    typedef typename IOHandlerCreator::OutputHandler OutputHandler;
-
-    std::map<int, InputHandler> input_handlers_;
-    std::map<int, OutputHandler> output_handlers_;
+    std::map<int, std::shared_ptr<InputHandler>> input_handlers_;
+    std::map<int, std::shared_ptr<OutputHandler>> output_handlers_;
 
     std::vector<std::shared_ptr<IODescriptor>> descriptors_;
+
+    bool keep_alive_;
 
 private:
     void addDescriptor(std::shared_ptr<IODescriptor> descriptor) {
@@ -168,7 +184,7 @@ private:
                     io_handler_creator_->createOutputHandler(descriptor)));
     }
  
-    InputHandler getInputHandler(int descriptor) {
+    std::shared_ptr<InputHandler> getInputHandler(int descriptor) {
         auto found = input_handlers_.find(descriptor);
         if (found == input_handlers_.end()) {
             throw std::logic_error("No InputHandler for descriptor");
@@ -176,7 +192,7 @@ private:
         return found->second;
     }
     
-    OutputHandler getOutputHandler(int descriptor) {
+    std::shared_ptr<OutputHandler> getOutputHandler(int descriptor) {
         auto found = output_handlers_.find(descriptor);
         if (found == output_handlers_.end()) {
             throw std::logic_error("No OutputHandler for descriptor");
@@ -185,18 +201,20 @@ private:
     }
     
     bool hasOutputMessages(int descriptor) { // stub
-        return true;
+        return io_handler_creator_->hasResult(descriptor); 
     }
 
-    typename OutputHandler::OutputBuffer getOutputBuffer(int descriptor) {
-        // stub
-        return typename OutputHandler::OutputBuffer();
+    Buffer getOutputMessage(int descriptor) {
+        Buffer message;
+        io_handler_creator_->getResult(descriptor, &message); 
+        return message;
     }
 
 public:
-    IOServer(IOServerConfig config, std::shared_ptr<IOHandlerCreator> creator) :
+    IOServer(IOServerConfig config, std::shared_ptr<IOTaskHandler> creator, bool keep_alive) :
         server_socket_(InternetAddress(config.address, config.port)),
-        io_handler_creator_(creator)
+        io_handler_creator_(creator),
+        keep_alive_(keep_alive)
         {} 
  
     void eventLoop() {
@@ -211,16 +229,23 @@ public:
                 } else if (server_socket_ == event.getDescriptor()) {
                     registerNewConnection();
                 } else if (event.input()) {
-                    InputHandler in_handler = getInputHandler(event.getDescriptor());
-                    bool finished = in_handler.handleInput();
+                    auto in_handler = getInputHandler(event.getDescriptor());
+                    bool finished = in_handler->handleInput();
                     if (finished) {
+                        std::cerr << "EL: set ready " << event.getDescriptor();
                         event.setReadyForWriting();
                     }
                 } else if (event.output()) {
                     if (hasOutputMessages(event.getDescriptor())) { 
-                        auto out_buffer = getOutputBuffer(event.getDescriptor());
-                        OutputHandler out_handler = getOutputHandler(event.getDescriptor());
-                        out_handler.handleOutput(out_buffer);
+                        auto out_message = getOutputMessage(event.getDescriptor());
+                        auto out_handler = 
+                            getOutputHandler(event.getDescriptor());
+                        bool finished = out_handler->handleOutput(out_message);
+                        if (finished && !keep_alive_) {
+                            // stub
+                            descriptor_manager_.removeDescriptor(event.getDescriptor());
+                            ::close(event.getDescriptor());        
+                        }
                     }
 
                 } else {
