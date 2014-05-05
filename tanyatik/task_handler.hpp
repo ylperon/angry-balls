@@ -14,8 +14,8 @@ private:
     std::shared_ptr<RequestHandler> request_handler_;
 
 public:
-    typedef AsyncInputHandler<InputHttpProtocol> InputHandler;
-    typedef AsyncOutputHandler<OutputHttpProtocol> OutputHandler;
+    typedef AsyncInputHandler InputHandler;
+    typedef AsyncOutputHandler OutputHandler;
 
     struct TaskCreator {
     private:
@@ -44,16 +44,16 @@ public:
         thread_pool_.submit(std::bind(&RequestHandler::handleRequest, request_handler_, request));
     }
 
-    InputHandler createInputHandler(std::shared_ptr<IODescriptor> descriptor) {
+    AsyncInputHandler createInputHandler(std::shared_ptr<IODescriptor> descriptor) {
         // after input is completed, we need to put a task into thread pool inside TaskHandler
         // after task is completed, TaskHandler will put result back in IOServer
         TaskCreator taskCreator(this, descriptor->getDescriptor());
 
-        return InputHandler(descriptor, InputHttpProtocol(taskCreator));
+        return AsyncInputHandler(descriptor, std::make_shared<InputHttpProtocol>(taskCreator));
     }
 
-    OutputHandler createOutputHandler(std::shared_ptr<IODescriptor> descriptor) {
-        return OutputHandler(descriptor, OutputHttpProtocol());
+    AsyncOutputHandler createOutputHandler(std::shared_ptr<IODescriptor> descriptor) {
+        return AsyncOutputHandler(descriptor, std::make_shared<OutputHttpProtocol>());
     }
 /*
     void putResult(int connection_id, Buffer result) {

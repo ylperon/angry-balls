@@ -1,19 +1,19 @@
 #pragma once 
 
+#include "protocol.hpp"
+
 namespace tanyatik {
 
-typedef std::vector<char> Buffer;
-
-template<typename ProtocolHandler>
 class AsyncInputHandler {
 private:
     std::shared_ptr<IODescriptor> descriptor_;
-    ProtocolHandler protocol_;
+    std::shared_ptr<InputProtocol> protocol_;
 
     static constexpr size_t BUFFER_SIZE = 512;
 
 public:
-    AsyncInputHandler(std::shared_ptr<IODescriptor> descriptor, ProtocolHandler protocol) :
+    AsyncInputHandler(std::shared_ptr<IODescriptor> descriptor, 
+            std::shared_ptr<InputProtocol> protocol) :
         descriptor_(descriptor),
         protocol_(protocol)
         {}
@@ -29,7 +29,7 @@ public:
                 char *buffer_end = buffer + recv_result;
                 Buffer data_chunk(buffer, buffer_end);
 
-                bool result = protocol_.processDataChunk(data_chunk);
+                bool result = protocol_->processDataChunk(data_chunk);
                 if (result) {
                     return result;
                 }
@@ -50,24 +50,24 @@ public:
     }
 };
 
-template<typename ProtocolHandler>
 class AsyncOutputHandler {
 private:
     std::shared_ptr<IODescriptor> descriptor_;
     Buffer buffer_;
-    ProtocolHandler protocol_;
+    std::shared_ptr<OutputProtocol> protocol_;
 
 public:
     typedef Buffer OutputBuffer;
 
-    AsyncOutputHandler(std::shared_ptr<IODescriptor> descriptor, ProtocolHandler protocol) :
+    AsyncOutputHandler(std::shared_ptr<IODescriptor> descriptor, 
+            std::shared_ptr<OutputProtocol> protocol) :
         descriptor_(descriptor),
         protocol_(protocol)
         {}
 
     void handleOutput(Buffer buffer) {
         if (buffer_.empty()) {
-            buffer_ = protocol_.getRespond(buffer);
+            buffer_ = protocol_->getRespond(buffer);
         }
 
         auto result = ::write(descriptor_->getDescriptor(), buffer_.data(), buffer_.size());
