@@ -7,13 +7,13 @@ typedef std::vector<char> Buffer;
 template<typename ProtocolHandler>
 class AsyncInputHandler {
 private:
-    IODescriptor &descriptor_;
+    std::shared_ptr<IODescriptor> descriptor_;
     ProtocolHandler protocol_;
 
     static constexpr size_t BUFFER_SIZE = 512;
 
 public:
-    AsyncInputHandler(IODescriptor &descriptor, ProtocolHandler protocol) :
+    AsyncInputHandler(std::shared_ptr<IODescriptor> descriptor, ProtocolHandler protocol) :
         descriptor_(descriptor),
         protocol_(protocol)
         {}
@@ -23,7 +23,7 @@ public:
             char buffer[BUFFER_SIZE];
             memset(buffer, 0, BUFFER_SIZE);
 
-            auto recv_result = ::recv(descriptor_.getDescriptor(), buffer, sizeof(buffer), 0);
+            auto recv_result = ::recv(descriptor_->getDescriptor(), buffer, sizeof(buffer), 0);
             if (recv_result > 0) {
                 // read successful
                 char *buffer_end = buffer + recv_result;
@@ -43,7 +43,7 @@ public:
             } else {
                 // connection closed
                 // free descriptor
-                descriptor_.close();
+                descriptor_->close();
                 return true;
             }
         }
@@ -53,14 +53,14 @@ public:
 template<typename ProtocolHandler>
 class AsyncOutputHandler {
 private:
-    IODescriptor &descriptor_;
+    std::shared_ptr<IODescriptor> descriptor_;
     Buffer buffer_;
     ProtocolHandler protocol_;
 
 public:
     typedef Buffer OutputBuffer;
 
-    AsyncOutputHandler(IODescriptor &descriptor, ProtocolHandler protocol) :
+    AsyncOutputHandler(std::shared_ptr<IODescriptor> descriptor, ProtocolHandler protocol) :
         descriptor_(descriptor),
         protocol_(protocol)
         {}
@@ -70,7 +70,7 @@ public:
             buffer_ = protocol_.getRespond(buffer);
         }
 
-        auto result = ::write(descriptor_.getDescriptor(), buffer_.data(), buffer_.size());
+        auto result = ::write(descriptor_->getDescriptor(), buffer_.data(), buffer_.size());
         if (result == -1) {
             if (errno == EWOULDBLOCK || errno == EAGAIN) {
                 // remembered this buffer, will try to put it next time
