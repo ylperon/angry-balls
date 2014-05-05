@@ -99,14 +99,6 @@ public:
 
         return std::shared_ptr<IODescriptor>(new IODescriptor(new_fd, non_blocking_));
     }
-/*
-    ServerSocket(const ServerSocket &) = delete;
-    ServerSocket &operator=(const ServerSocket &) = delete;
-
-    ~ServerSocket() {
-        closeSocket();
-    }
-*/
 };
 
 } // namespace tanyatik
