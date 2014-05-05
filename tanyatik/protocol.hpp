@@ -5,6 +5,8 @@
 #include <vector>
 #include <functional>
 
+#include "types.hpp"
+
 namespace tanyatik {
 
 class InputProtocol {
