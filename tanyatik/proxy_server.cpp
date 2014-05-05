@@ -21,6 +21,28 @@
 
 namespace tanyatik {
 
+class ProxyHandlerFactory : public IOHandlerFactory {
+private:
+    std::shared_ptr<TaskCreator> task_handler_; 
+
+public:
+    ProxyHandlerFactory(std::shared_ptr<TaskCreator> task_handler) :
+        task_handler_(task_handler)
+        {} 
+
+    virtual std::shared_ptr<InputHandler> createInputHandler
+            (int descriptor) {
+        return std::make_shared<AsyncInputHandler>
+                (descriptor, std::make_shared<InputHttpProtocol>(task_handler_, descriptor));
+    }
+
+    virtual std::shared_ptr<OutputHandler> createOutputHandler
+            (int descriptor) {
+        return std::make_shared<AsyncOutputHandler>
+                (descriptor, std::make_shared<OutputHttpProtocol>());
+    }
+};
+
 class ProxyServer {
 private:
     std::shared_ptr<RespondHandler> respond_handler_;
