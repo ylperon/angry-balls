@@ -116,12 +116,10 @@ int main(int argc, char * argv[]) {
           std::cerr << "state: " << ipc.connection_state << std::endl;
           last_state = ipc.connection_state;
         }
-        ipc_lock.unlock();
         QMetaObject::invokeMethod(&fieldView, "updateFieldView");
         if (ipc.connection_state == ab::ui::ConnectionState::disconnected) {
           return;
         }
-        ipc_lock.lock();
         ipc.cv.wait(ipc_lock);
       }
     });
