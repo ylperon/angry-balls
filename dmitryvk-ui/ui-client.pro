@@ -9,7 +9,7 @@ INCLUDEPATH += .
 QT       += core gui
 
 # Input
-SOURCES += main.cpp ipc.h client.cpp
-HEADERS += ipc.h fieldview.h
+SOURCES += main.cpp client.cpp
+HEADERS += ipc.hpp fieldview.hpp
 
 QMAKE_CXXFLAGS += -Wall -pedantic -std=c++11
