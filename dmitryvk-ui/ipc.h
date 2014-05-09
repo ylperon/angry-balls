@@ -18,6 +18,7 @@ namespace ab {
       std::condition_variable cv;
       uint64_t field_counter;
       ab::FieldState current_field;
+      
       ConnectionState connection_state;
 
     UiGameClientIpc(): field_counter(0), connection_state(ConnectionState::connecting) {
