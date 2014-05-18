@@ -38,7 +38,7 @@ struct ViewerSubscribeRequestMessage : Message {};
 struct ViewerSubscribeResultMessage : Message
 {
     bool result;
-    ViewerId player_id;
+    ViewerId viewer_id;
 };
 
 struct FieldStateMessage : Message
