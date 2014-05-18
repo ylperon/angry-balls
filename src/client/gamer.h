@@ -8,7 +8,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-#include "../../include/ab/strategy_interface.h"
+#include ""
+#include "ab/strategy_interface.h"
 #include "../../lib/util/basics.h"
 
 namespace ab {
@@ -41,9 +42,9 @@ public:
     std::string Turn(const std::string& state) const;
 
 private:
-    IOClient client_;
     size_t id_;
+    IOClient client_;
     Strategy strategy_;
 };
 
-}
+} // namespace ab

@@ -22,7 +22,7 @@ bool IOClient::Connection(size_t port) const
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // INADDR_ANY [in production]
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     if (connect(sockfd_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("Connection failed");
         return false;
@@ -120,4 +120,4 @@ std::string Gamer<Strategy>::Turn(const std::string& state) const
     return turn;
 }
 
-}
+} // namespace ab
