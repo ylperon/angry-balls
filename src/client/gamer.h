@@ -8,10 +8,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-//#include "strategy.h" [in production]
-//#include "basics.h" [in production]
-//#include "../permanentstudent/strategy.h"
-#include "../util/basics.h"
+#include "../../include/ab/strategy_interface.h"
+#include "../../lib/util/basics.h"
 
 namespace ab {
 
