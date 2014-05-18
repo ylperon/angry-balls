@@ -1,12 +1,12 @@
-#include "strategies.h"
+#include "strategies/strategies.h"
 
 #include <vector>
 #include <cmath>
 
 namespace {
 
-static const double kPi = acos(-1.0);
-static const size_t kAngleStepNumber = 10000;
+static constexpr double kPi = acos(-1.0);
+static constexpr size_t kAngleStepNumber = 10000;
 
 struct BestMoveToCoin
 {

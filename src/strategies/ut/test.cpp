@@ -1,8 +1,8 @@
 #include <iostream>
 #include <iomanip>
 
-#include "basics.h"
-#include "strategies.h"
+#include "util/basics.h"
+#include "strategies/strategies.h"
 
 void Test()
 {
