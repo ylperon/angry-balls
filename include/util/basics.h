@@ -10,15 +10,12 @@ struct Point
     double y;
 };
 
-struct Velocity : Point
-{
-};
+struct Velocity : Point {};
 
-struct Acceleration : Point
-{
-};
+struct Acceleration : Point {};
 
 typedef unsigned int PlayerId;
+typedef unsigned int ViewerId;
 
 struct Player
 {

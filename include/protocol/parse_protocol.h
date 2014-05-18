@@ -6,43 +6,49 @@
 
 namespace ab {
 
-enum MessageType {
-	kClientSubscribeRequestMessage,
-	kClientSubscribeResultMessage,
-	kViewerSubscribeRequestMessage,
-	kViewerSubscribeResultMessage,
-	kStateMessage,
-	kTurnMessage,
+enum MessageType
+{
+    kClientSubscribeRequestMessage,
+    kClientSubscribeResultMessage,
+    kViewerSubscribeRequestMessage,
+    kViewerSubscribeResultMessage,
+    kStateMessage,
+    kTurnMessage
 };
 
-struct Message {
+struct Message
+{
     MessageType type;
 };
 
-struct ClientRequestMessage : Message {};
+struct ClientSubscribeRequestMessage : Message {};
 
-struct ClientResultMessage : Message {
+struct ClientSubscribeResultMessage : Message
+{
     bool result;
     PlayerId player_id;
 };
 
-struct ViewerRequestMessage : Message {};
+struct ViewerSubscribeRequestMessage : Message {};
 
-struct ViewerResultMessage : Message {
+struct ViewerSubscribeResultMessage : Message
+{
     bool result;
-    PlayerId player_id;
+    ViewerId player_id;
 };
 
-struct FieldsStateMessage : Message {
+struct FieldStateMessage : Message
+{
     FieldState field_state;
 };
 
-struct TurnMessage : Message {
+struct TurnMessage : Message
+{
     Turn turn;
     FieldStateId state_id;
 };
 
-std::string BuildJsonMessage(const Message& message);
+std::string BuildJsonMessage(const Message* const message);
 std::unique_ptr<Message> ParseJsonMessage(const std::string& json);
 
 } // namespace ab
