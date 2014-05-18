@@ -146,7 +146,7 @@ std::string BuildFieldStateMessage(const ab::FieldStateMessage& message)
         player_json["y"] = ToString(player.center.y);
         player_json["v_x"] = ToString(player.velocity.x);
         player_json["v_y"] = ToString(player.velocity.y);
-        player_json["score"] = ToString(palyer.score);
+        player_json["score"] = ToString(player.score);
         players.append(player_json);
     }
     result["players"] = players;
