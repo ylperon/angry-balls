@@ -1,10 +1,22 @@
+#pragma once
+
 #include <memory>
+
 #include "util/basics.h"
 
 namespace ab {
 
+enum MessageType {
+	kClientSubscribeRequestMessage,
+	kClientSubscribeResultMessage,
+	kViewerSubscribeRequestMessage,
+	kViewerSubscribeResultMessage,
+	kStateMessage,
+	kTurnMessage,
+};
+
 struct Message {
-    kMessageType type;
+    MessageType type;
 };
 
 struct ClientRequestMessage : Message {};
@@ -31,6 +43,6 @@ struct TurnMessage : Message {
 };
 
 std::string BuildJsonMessage(const Message& message);
-std::unique_ptr<Message> ParseMessageJson(const std::string& json);
+std::unique_ptr<Message> ParseJsonMessage(const std::string& json);
 
 } // namespace ab
