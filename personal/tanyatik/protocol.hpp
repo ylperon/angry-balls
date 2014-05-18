@@ -178,15 +178,4 @@ public:
     }
 };
 
-class OutputHttpProtocol : public OutputProtocol {
-public:
-    OutputHttpProtocol() :
-        OutputProtocol()
-        {}
-
-    virtual Buffer getRespond(Buffer buffer) {
-        return buffer;
-    } 
-};
-
 } // namespace tanyatik
