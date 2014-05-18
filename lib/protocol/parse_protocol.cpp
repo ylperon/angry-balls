@@ -402,7 +402,7 @@ std::unique_ptr<ab::Message> ab::ParseJsonMessage(const std::string& json)
         return std::unique_ptr<Message>();
 
     MessageType type;
-    if (!root.isMemeber("root") || !TryFromString(root["type"], type))
+    if (!root.isMemeber("type") || !TryFromString(root["type"], type))
         return std::unique_ptr<Message>();
 
     switch (type) {
