@@ -7,12 +7,12 @@
 namespace ab {
 
 enum MessageType {
-	kClientSubscribeRequestMessage,
-	kClientSubscribeResultMessage,
-	kViewerSubscribeRequestMessage,
-	kViewerSubscribeResultMessage,
-	kStateMessage,
-	kTurnMessage,
+    kClientSubscribeRequestMessage,
+    kClientSubscribeResultMessage,
+    kViewerSubscribeRequestMessage,
+    kViewerSubscribeResultMessage,
+    kStateMessage,
+    kTurnMessage,
 };
 
 struct Message {
