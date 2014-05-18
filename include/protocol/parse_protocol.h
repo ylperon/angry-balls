@@ -16,6 +16,10 @@ enum MessageType
     kTurnMessage
 };
 
+std::string ToString(const MessageType type);
+bool TryFromString(const std::string& message, MessageType& type);
+MessageType FromString(const std::string& message);
+
 struct Message
 {
     MessageType type;
