@@ -30,14 +30,14 @@ private:
             {}
     };
 
+    std::shared_ptr<mio::RequestHandler> request_handler_;
     size_t length_size_;
     State state_;
 
 public:
-    InputLengthPrefixedProtocol(std::shared_ptr<TaskCreator> task_creator, 
-            int connection_id,
+    InputLengthPrefixedProtocol(std::shared_ptr<mio::RequestHandler> request_handler,
             size_t length_size = 4) :
-        InputProtocol(task_creator, connection_id),
+        request_handler_(request_handler),
         length_size_(length_size),
         state_(length_size)
         {}
@@ -99,7 +99,7 @@ public:
                                 buffer_seek + remaining_length, 
                                 state_.buffer.begin() + state_.read_length);
                         buffer_seek += remaining_length;
-                        sendRequest(state_.buffer);
+                        request_handler_->handleRequest(state_.buffer);
                         sent = true;
 
                         state_ = State(length_size_);
@@ -120,7 +120,7 @@ public:
         OutputProtocol()
         {}
 
-    virtual Buffer getRespond(Buffer message_body) {
+    virtual Buffer getResponse(Buffer message_body) {
         Buffer message;
 
         char length_buffer[sizeof(int)];
@@ -129,52 +129,6 @@ public:
 
         message.insert(message.end(), message_body.begin(), message_body.end());
         return message;
-    }
-};
-
-// Actually this is only a poor stub for proxy server for SHAD :)
-class InputHttpProtocol : public InputProtocol {
-private:
-    Buffer buffer_;
-
-public:
-    InputHttpProtocol(std::shared_ptr<TaskCreator> task_creator, int connection_id) :
-        InputProtocol(task_creator, connection_id)
-        {}
-
-    virtual bool processDataChunk(Buffer buffer) {
-        auto buffer_begin = buffer.begin();
-        auto buffer_seek = buffer.begin();
-        bool sent = false;
-
-        while (buffer_seek != buffer.end()) {  
-            if (std::distance(buffer_begin, buffer_seek) >= 4 &&
-                    *buffer_seek == '\n' && 
-                    *(buffer_seek - 1) == '\r' &&
-                    *(buffer_seek - 2) == '\n' &&
-                    *(buffer_seek - 3) == '\r') {
-                buffer_.insert(buffer_.end(), buffer_begin, buffer_seek);
-                buffer_.push_back('\n');
-                buffer_.push_back('\0');
-
-                sendRequest(buffer_);
-                sent = true;
-
-                buffer_ = Buffer();
-
-                buffer_begin = buffer_seek + 1;
-                if (buffer_begin != buffer.end() && *buffer_begin == '\0') {
-                    ++buffer_begin;
-                }
-            }
-            ++buffer_seek;
-        }
-
-        if (buffer_begin != buffer.end()) {
-            buffer_.insert(buffer_.end(), buffer_begin, buffer.end());
-        }
-
-        return sent;
     }
 };
 
