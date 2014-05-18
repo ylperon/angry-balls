@@ -1,10 +1,11 @@
 #pragma once
 
-#include "basics.h"
-
 #include <vector>
 
 namespace ab {
+
+struct FieldState;
+struct Turn;
 
 class EmulatorInterface
 {
