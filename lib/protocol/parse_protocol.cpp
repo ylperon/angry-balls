@@ -88,7 +88,7 @@ std::string BuildClientSubscribeResultMessage(const ab::ClientSubscribeResultMes
     result["type"] = ab::ToString(message.type);
     if (message.result) {
         result["result"] = "ok";
-        result["id"] = ToString(message.id);
+        result["id"] = ToString(message.player_id);
     } else {
         result["result"] = "fail";
     }
@@ -111,7 +111,7 @@ std::string BuildViewerSubscribeResultMessage(const ab::ViewerSubscribeResultMes
     result["type"] = ab::ToString(message.type);
     if (message.result) {
         result["result"] = "ok";
-        result["id"] = ToString(message.id);
+        result["id"] = ToString(message.viewer_id);
     } else {
         result["result"] = "fail";
     }
@@ -215,6 +215,208 @@ std::string ab::BuildJsonMessage(const ab::Message* const message)
     }
 }
 
-std::unique_ptr<ab::Message> ParseJsonMessage(const std::string& json)
+namespace {
+
+std::unique_ptr<ab::Message> ParseClientSubscribeRequestMessage(const Json::Value& json)
 {
+    std::unique_ptr<ab::ClientSubscribeRequestMessage> message_ptr
+        = new ClientSubscribeRequestMessage();
+    ClientSubscribeRequestMessage& message = *message_ptr;
+    message.type = kClientSubscribeRequestMessage;
+    return message_ptr;
+}
+
+std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value& json)
+{
+    std::unique_ptr<ab::ClientSubscribeResultMessage> message_ptr
+        = new ClientSubscribeResultMessage();
+    ClientSubscribeResultMessage& message = *message_ptr;
+    message.type = kClientSubscribeResultMessage;
+    if (!json.isMember("result") || json["result"] != "fail" || json["result"] != "ok")
+        return std::unique_ptr<ab::Message>();
+
+    if (json["result"] == "fail") {
+        message.result = false;
+        message.player_id = 0;
+    }
+
+    message.result = true;
+    if (!json.isMember("id") || !json["id"].isUInt())
+        return std::unique_ptr<ab::Message>();
+    message.player_id = json["id"].asUInt();
+
+    return message_ptr;
+}
+
+std::unique_ptr<ab::Message> ParseViewerSubscribeRequestMessage(const Json::Value& json)
+{
+    std::unique_ptr<ab::ViewerSubscribeRequestMessage> message_ptr
+        = new ViewerSubscribeRequestMessage();
+    ViewerSubscribeRequestMessage& message = *message_ptr;
+    message.type = kViewerSubscribeRequestMessage;
+    return message_ptr;
+}
+
+std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value& json)
+{
+    std::unique_ptr<ab::ViewerSubscribeResultMessage> message_ptr
+        = new ViewerSubscribeResultMessage();
+    ViewerSubscribeResultMessage& message = *message_ptr;
+    message.type = kViewerSubscribeResultMessage;
+    if (!json.isMember("result") || json["result"] != "fail" || json["result"] != "ok")
+        return std::unique_ptr<ab::Message>();
+
+    if (json["result"] == "fail") {
+        message.result = false;
+        message.viewer_id = 0;
+    }
+
+    message.result = true;
+    if (!json.isMember("id") || !json["id"].isUInt())
+        return std::unique_ptr<ab::Message>();
+    message.viewer_id = json["id"].asUInt();
+
+    return message_ptr;
+}
+
+std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
+{
+    std::unique_ptr<ab::FieldStateMessage> message_ptr = new FieldStateMessage();
+    FieldStateMessage& message = *message_ptr;
+    message.type = kFieldStateMessage;
+
+    if (!json.isMember("state_id") || !json["state_id"].isUInt64())
+        return std::unique_ptr<ab::Message>();
+    message.field_state.id = json["state_id"].asUInt64();
+
+    if (!json.isMember("field_radius") || !json["field_radius"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    message.field_state.radius = json["field_radius"].asDouble();
+
+    if (!json.isMember("player_radius") || !json["player_radius"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    const double player_radius = json["player_radius"].asDouble();
+
+    if (!json.isMember("coin_radius") || !json["coin_radius"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    const double coin_radius = json["coin_radius"].asDouble();
+
+    if (!json.isMember("time_delta") || !json["time_delta"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    message.field_state.time_delta = json["time_delta"].asDouble();
+
+    if (!json.isMember("velocity_max") || !json["velocity_max"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    message.field_state.velocity_max = json["velocity_max"].asDouble();
+
+    if (!json.isMember("players") || !json["players"].isArray())
+        return std::unique_ptr<ab::Message>();
+
+    const Json::Value& players = json["players"];
+    message.field_state.players.resize(players.size());
+    for (size_t index = 0; index < players.size(); ++index) {
+        const Json::Value& player = players[index];
+        if (!player.isMember("id") || !player["id"].isUInt())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.players[index].id = player["id"].asUInt();
+
+        if (!player.isMember("x") || !player["x"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.players[index].center.x = player["x"].asDouble();
+
+        if (!player.isMember("y") || !player["y"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.players[index].center.y = player["y"].asDouble();
+
+        if (!player.isMember("v_x") || !player["v_x"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.players[index].velocity.x = player["v_x"].asDouble();
+
+        if (!player.isMember("v_y") || !player["v_y"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.players[index].velocity.y = player["v_y"].asDouble();
+
+        if (!player.isMember("score") || !player["score"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.players[index].score = player["score"].asDouble();
+        message.field_state.players[index].radius = player_radius;
+    }
+
+    if (!json.isMember("coins") || !json["coins"].isArray())
+        return std::unique_ptr<ab::Message>();
+
+    const Json::Value& coins = json["coins"];
+    message.field_state.coins.resize(coins.size());
+    for (size_t index = 0; index < coins.size(); ++index) {
+        const Json::Value& coin = coins[index];
+        if (!coin.isMember("x") || !coin["x"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.coins[index].center.x = coin["x"].asDouble();
+
+        if (!coin.isMember("y") || !coin["y"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.coins[index].center.y = coin["y"].asDouble();
+
+        if (!coin.isMember("value") || !coin["value"].isDouble())
+            return std::unique_ptr<ab::Message>();
+        message.field_state.coins[index].value = coin["value"].asDouble();
+        message.field_state.coins[index].radius = coin_radius;
+    }
+
+    return message_ptr;
+}
+
+std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
+{
+    std::unique_ptr<ab::TurnMessage> message_ptr = new TurnMessage();
+    TurnMessage& message = *message_ptr;
+    message.type = kTurnMessage;
+
+    if (!json.isMember("state_id") || !json["state_id"].isUInt64())
+        return std::unique_ptr<ab::Message>();
+    message.state_id = json["state_id"].asUInt64();
+
+    if (!json.isMember("id") || !json["id"].isUInt())
+        return std::unique_ptr<ab::Message>();
+    message.turn.player_id = json["id"].asUInt();
+
+    if (!json.isMember("a_x") || !json["a_x"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    message.turn.acceleration.y = json["a_x"].asDouble();
+
+    if (!json.isMember("a_y") || !json["a_y"].isDouble())
+        return std::unique_ptr<ab::Message>();
+    message.turn.acceleration.y = json["a_y"].asDouble();
+
+    return message_ptr;
+}
+
+} // namespace
+
+std::unique_ptr<ab::Message> ab::ParseJsonMessage(const std::string& json)
+{
+    Json::Value root;
+    Json::Reader reader;
+    const bool parsing_successful = reader.parse(json, root);
+    if (!parsing_successful)
+        return std::unique_ptr<Message>();
+
+    MessageType type;
+    if (!root.isMemeber("root") || !TryFromString(root["type"], type))
+        return std::unique_ptr<Message>();
+
+    switch (type) {
+        case kClientSubscribeRequestMessage:
+            return ParseClientSubscribeRequestMessage(root);
+        case kClientSubscribeResultMessage:
+            return ParseClientSubscribeResultMessage(root);
+        case kViewerSubscribeRequestMessage:
+            return ParseViewerSubscribeRequestMessage(root);
+        case kViewerSubscribeResultMessage:
+            return ParseViewerSubscribeResultMessage(root);
+        case kStateMessage:
+            return ParseFieldStateMessage(root);
+        case kTurnMessage:
+            return ParseTurnMessage(root);
+    }
 }
