@@ -33,7 +33,7 @@ struct ViewerResultMessage : Message {
     PlayerId player_id;
 };
 
-struct FieldsStateMessage : Message {
+struct FieldStateMessage : Message {
     FieldState field_state;
 };
 
