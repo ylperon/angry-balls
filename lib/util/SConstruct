@@ -1,0 +1,11 @@
+cpp_path = '../../../include/'
+cpp_flags = ['-g', '-Wall', '--std=c++11', '--stdlib=libc++']
+compiler = 'clang++'
+
+env = Environment(
+    CXX = compiler,
+    CPPFLAGS = cpp_flags,
+    CPPPATH = cpp_path
+)
+
+SConscript('SConscript', variant_dir='build-scons', exports=['env'])
