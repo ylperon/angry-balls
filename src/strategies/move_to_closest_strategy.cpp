@@ -1,4 +1,4 @@
-#include "strategies.h"
+#include "strategies/strategies.h"
 
 #include <algorithm>
 #include <functional>

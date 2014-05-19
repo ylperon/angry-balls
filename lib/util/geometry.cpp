@@ -1,6 +1,6 @@
-#include "geometry.h"
+#include "util/geometry.h"
 
-#include "basics.h"
+#include "util/basics.h"
 
 #include <cmath>
 
