@@ -1,12 +1,12 @@
 #include "protocol/parse_protocol.h"
 
 #include <sstream>
-#include <stdexception>
+#include <stdexcept>
 #include <map>
 
 #include <cassert>
 
-#include <jsoncpp/json.h>
+#include <json/json.h>
 
 namespace {
 
@@ -15,24 +15,24 @@ class Helper
 public:
     Helper()
     {
-        enum_to_string[kClientSubscribeRequestMessage] = "CLI_SUB_REQUEST";
-        enum_to_string[kClientSubscribeResultMessage] = "CLI_SUB_RESULT";
-        enum_to_string[kViewerSubscribeRequestMessage] = "VIEW_SUB_REQUEST";
-        enum_to_string[kViewerSubscribeResultMessage] = "VIEW_SUB_RESULT";
-        enum_to_string[kStateMessage] = "STATE";
-        enum_to_string[kTurnMessage] = "TURN";
+        enum_to_string[ab::kClientSubscribeRequestMessage] = "CLI_SUB_REQUEST";
+        enum_to_string[ab::kClientSubscribeResultMessage] = "CLI_SUB_RESULT";
+        enum_to_string[ab::kViewerSubscribeRequestMessage] = "VIEW_SUB_REQUEST";
+        enum_to_string[ab::kViewerSubscribeResultMessage] = "VIEW_SUB_RESULT";
+        enum_to_string[ab::kFieldStateMessage] = "STATE";
+        enum_to_string[ab::kTurnMessage] = "TURN";
 
         for (auto iter = enum_to_string.begin(); iter != enum_to_string.end(); ++iter)
             string_to_enum[iter->second] = iter->first;
     }
 
-    std::map<ab::MessageType, std::string> string_to_enum;
-    std::map<std::string, ab::MessageType> enum_to_string;
+    std::map<ab::MessageType, std::string> enum_to_string;
+    std::map<std::string, ab::MessageType> string_to_enum;
 };
 
-const Helper& GetHelperInstance()
+static const Helper& GetHelperInstance()
 {
-    static Helper helper;
+    static const Helper helper;
     return helper;
 }
 
@@ -48,13 +48,13 @@ std::string ToString(const T value)
 
 std::string ab::ToString(const ab::MessageType type)
 {
-    const Helper& helper = GetHelperInstance;
-    return helper.enum_to_string[type];
+    static const Helper& helper = GetHelperInstance();
+    return helper.enum_to_string.at(type);
 }
 
 bool ab::TryFromString(const std::string& message, ab::MessageType& type)
 {
-    const Helper& helper = GetHelperInstance();
+    static const Helper& helper = GetHelperInstance();
     auto iter = helper.string_to_enum.find(message);
     if (helper.string_to_enum.end() == iter)
         return false;
@@ -63,7 +63,7 @@ bool ab::TryFromString(const std::string& message, ab::MessageType& type)
     return true;
 }
 
-ab::MessageType ab::ToString(const std::string& message)
+ab::MessageType ab::FromString(const std::string& message)
 {
     MessageType type;
     if (TryFromString(message, type))
@@ -77,7 +77,7 @@ namespace {
 std::string BuildClientSubscribeRequestMessage(const ab::ClientSubscribeRequestMessage& message)
 {
     Json::Value result;
-    result["type"] = ab::FromString(message.type);
+    result["type"] = ab::ToString(message.type);
     Json::FastWriter writer;
     return writer.write(result);
 }
@@ -139,7 +139,7 @@ std::string BuildFieldStateMessage(const ab::FieldStateMessage& message)
     result["velocity_max"] = ToString(message.field_state.velocity_max);
 
     Json::Value players;
-    for (const Player& player: message.field_state.players) {
+    for (const ab::Player& player: message.field_state.players) {
         Json::Value player_json;
         player_json["id"] = ToString(player.id);
         player_json["x"] = ToString(player.center.x);
@@ -152,7 +152,7 @@ std::string BuildFieldStateMessage(const ab::FieldStateMessage& message)
     result["players"] = players;
 
     Json::Value coins;
-    for (const Coin& coin: message.field_state.coins) {
+    for (const ab::Coin& coin: message.field_state.coins) {
         Json::Value coin_json;
         coin_json["x"] = ToString(coin.center.x);
         coin_json["y"] = ToString(coin.center.y);
@@ -168,10 +168,10 @@ std::string BuildTurnMessage(const ab::TurnMessage& message)
 {
     Json::Value result;
     result["type"] = ab::ToString(message.type);
-    result["state_id"] = ToString(message.state_id);
-    result["id"] = ToString(message.player_id);
-    result["a_x"] = ToString(message.acceleration.x);
-    result["a_y"] = ToString(message.acceleration.y);
+    result["state_id"] = ToString(message.turn.state_id);
+    result["id"] = ToString(message.turn.player_id);
+    result["a_x"] = ToString(message.turn.acceleration.x);
+    result["a_y"] = ToString(message.turn.acceleration.y);
 
     Json::FastWriter writer;
     return writer.write(result);
@@ -183,35 +183,37 @@ std::string ab::BuildJsonMessage(const ab::Message* const message)
 {
     assert(nullptr != message);
     switch (message->type) {
-        case kClientSubscribeRequestMessage:
+        case kClientSubscribeRequestMessage: {
             const ClientSubscribeRequestMessage * const client_subscribe_request_message
-                = dynamic_cast<ClientSubscribeRequestMessage>(message);
+                = dynamic_cast<const ClientSubscribeRequestMessage* const>(message);
             assert(nullptr != client_subscribe_request_message);
             return BuildClientSubscribeRequestMessage(*client_subscribe_request_message);
-        case kClientSubscribeResultMessage:
+        } case kClientSubscribeResultMessage: {
             const ClientSubscribeResultMessage * const client_subscribe_result_message
-                = dynamic_cast<ClientSubscribeResultMessage>(message);
+                = dynamic_cast<const ClientSubscribeResultMessage* const>(message);
             assert(nullptr != client_subscribe_result_message);
             return BuildClientSubscribeResultMessage(*client_subscribe_result_message);
-        case kViewerSubscribeRequestMessage:
+        } case kViewerSubscribeRequestMessage: {
             const ViewerSubscribeRequestMessage * const viewer_subscribe_request_message
-                = dynamic_cast<ViewerSubscribeRequestMessage>(message);
+                = dynamic_cast<const ViewerSubscribeRequestMessage* const>(message);
             assert(nullptr != viewer_subscribe_request_message);
             return BuildViewerSubscribeRequestMessage(*viewer_subscribe_request_message);
-        case kViewerSubscribeResultMessage:
+        } case kViewerSubscribeResultMessage: {
             const ViewerSubscribeResultMessage * const viewer_subscribe_result_message
-                = dynamic_cast<ViewerSubscribeResultMessage>(message);
+                = dynamic_cast<const ViewerSubscribeResultMessage* const>(message);
             assert(nullptr != viewer_subscribe_result_message);
             return BuildViewerSubscribeResultMessage(*viewer_subscribe_result_message);
-        case kStateMessage:
+        } case kFieldStateMessage: {
             const FieldStateMessage * const field_state_message
-                = dynamic_cast<FieldStateMessage>(message);
+                = dynamic_cast<const FieldStateMessage* const>(message);
             assert(nullptr != field_state_message);
             return BuildFieldStateMessage(*field_state_message);
-        case kTurnMessage:
-            const TurnMessage * const turn_message = dynamic_cast<TurnMessage>(message);
+        } case kTurnMessage: {
+            const TurnMessage * const turn_message
+                = dynamic_cast<const TurnMessage* const>(message);
             assert(nullptr != turn_message);
             return BuildTurnMessage(*turn_message);
+        }
     }
 }
 
@@ -219,19 +221,19 @@ namespace {
 
 std::unique_ptr<ab::Message> ParseClientSubscribeRequestMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::ClientSubscribeRequestMessage> message_ptr
-        = new ClientSubscribeRequestMessage();
-    ClientSubscribeRequestMessage& message = *message_ptr;
-    message.type = kClientSubscribeRequestMessage;
+    std::unique_ptr<ab::ClientSubscribeRequestMessage>
+        message_ptr(new ab::ClientSubscribeRequestMessage());
+    ab::ClientSubscribeRequestMessage& message = *message_ptr;
+    message.type = ab::kClientSubscribeRequestMessage;
     return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::ClientSubscribeResultMessage> message_ptr
-        = new ClientSubscribeResultMessage();
-    ClientSubscribeResultMessage& message = *message_ptr;
-    message.type = kClientSubscribeResultMessage;
+    std::unique_ptr<ab::ClientSubscribeResultMessage>
+        message_ptr(new ab::ClientSubscribeResultMessage());
+    ab::ClientSubscribeResultMessage& message = *message_ptr;
+    message.type = ab::kClientSubscribeResultMessage;
     if (!json.isMember("result") || json["result"] != "fail" || json["result"] != "ok")
         return std::unique_ptr<ab::Message>();
 
@@ -250,19 +252,19 @@ std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeRequestMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::ViewerSubscribeRequestMessage> message_ptr
-        = new ViewerSubscribeRequestMessage();
-    ViewerSubscribeRequestMessage& message = *message_ptr;
-    message.type = kViewerSubscribeRequestMessage;
+    std::unique_ptr<ab::ViewerSubscribeRequestMessage>
+        message_ptr(new ab::ViewerSubscribeRequestMessage());
+    ab::ViewerSubscribeRequestMessage& message = *message_ptr;
+    message.type = ab::kViewerSubscribeRequestMessage;
     return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::ViewerSubscribeResultMessage> message_ptr
-        = new ViewerSubscribeResultMessage();
-    ViewerSubscribeResultMessage& message = *message_ptr;
-    message.type = kViewerSubscribeResultMessage;
+    std::unique_ptr<ab::ViewerSubscribeResultMessage>
+        message_ptr(new ab::ViewerSubscribeResultMessage());
+    ab::ViewerSubscribeResultMessage& message = *message_ptr;
+    message.type = ab::kViewerSubscribeResultMessage;
     if (!json.isMember("result") || json["result"] != "fail" || json["result"] != "ok")
         return std::unique_ptr<ab::Message>();
 
@@ -281,13 +283,13 @@ std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value
 
 std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::FieldStateMessage> message_ptr = new FieldStateMessage();
-    FieldStateMessage& message = *message_ptr;
-    message.type = kFieldStateMessage;
+    std::unique_ptr<ab::FieldStateMessage> message_ptr(new ab::FieldStateMessage());
+    ab::FieldStateMessage& message = *message_ptr;
+    message.type = ab::kFieldStateMessage;
 
-    if (!json.isMember("state_id") || !json["state_id"].isUInt64())
+    if (!json.isMember("state_id") || !json["state_id"].isUInt())
         return std::unique_ptr<ab::Message>();
-    message.field_state.id = json["state_id"].asUInt64();
+    message.field_state.id = json["state_id"].asUInt();
 
     if (!json.isMember("field_radius") || !json["field_radius"].isDouble())
         return std::unique_ptr<ab::Message>();
@@ -368,13 +370,13 @@ std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
 
 std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::TurnMessage> message_ptr = new TurnMessage();
-    TurnMessage& message = *message_ptr;
-    message.type = kTurnMessage;
+    std::unique_ptr<ab::TurnMessage> message_ptr(new ab::TurnMessage());
+    ab::TurnMessage& message = *message_ptr;
+    message.type = ab::kTurnMessage;
 
-    if (!json.isMember("state_id") || !json["state_id"].isUInt64())
+    if (!json.isMember("state_id") || !json["state_id"].isUInt())
         return std::unique_ptr<ab::Message>();
-    message.state_id = json["state_id"].asUInt64();
+    message.state_id = json["state_id"].asUInt();
 
     if (!json.isMember("id") || !json["id"].isUInt())
         return std::unique_ptr<ab::Message>();
@@ -402,7 +404,7 @@ std::unique_ptr<ab::Message> ab::ParseJsonMessage(const std::string& json)
         return std::unique_ptr<Message>();
 
     MessageType type;
-    if (!root.isMemeber("type") || !TryFromString(root["type"], type))
+    if (!root.isMember("type") || !TryFromString(root["type"].asString(), type))
         return std::unique_ptr<Message>();
 
     switch (type) {
@@ -414,7 +416,7 @@ std::unique_ptr<ab::Message> ab::ParseJsonMessage(const std::string& json)
             return ParseViewerSubscribeRequestMessage(root);
         case kViewerSubscribeResultMessage:
             return ParseViewerSubscribeResultMessage(root);
-        case kStateMessage:
+        case kFieldStateMessage:
             return ParseFieldStateMessage(root);
         case kTurnMessage:
             return ParseTurnMessage(root);
