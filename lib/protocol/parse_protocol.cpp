@@ -223,7 +223,7 @@ std::unique_ptr<ab::Message> ParseClientSubscribeRequestMessage(const Json::Valu
         = new ClientSubscribeRequestMessage();
     ClientSubscribeRequestMessage& message = *message_ptr;
     message.type = kClientSubscribeRequestMessage;
-    return message_ptr;
+    return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value& json)
@@ -245,7 +245,7 @@ std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value
         return std::unique_ptr<ab::Message>();
     message.player_id = json["id"].asUInt();
 
-    return message_ptr;
+    return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeRequestMessage(const Json::Value& json)
@@ -254,7 +254,7 @@ std::unique_ptr<ab::Message> ParseViewerSubscribeRequestMessage(const Json::Valu
         = new ViewerSubscribeRequestMessage();
     ViewerSubscribeRequestMessage& message = *message_ptr;
     message.type = kViewerSubscribeRequestMessage;
-    return message_ptr;
+    return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value& json)
@@ -276,7 +276,7 @@ std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value
         return std::unique_ptr<ab::Message>();
     message.viewer_id = json["id"].asUInt();
 
-    return message_ptr;
+    return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
@@ -363,7 +363,7 @@ std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
         message.field_state.coins[index].radius = coin_radius;
     }
 
-    return message_ptr;
+    return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
@@ -388,7 +388,7 @@ std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
         return std::unique_ptr<ab::Message>();
     message.turn.acceleration.y = json["a_y"].asDouble();
 
-    return message_ptr;
+    return std::unique_ptr<ab::Message>(message_ptr.release());
 }
 
 } // namespace
