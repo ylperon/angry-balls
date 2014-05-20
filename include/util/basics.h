@@ -17,17 +17,18 @@ struct Acceleration : Point {};
 typedef unsigned int PlayerId;
 typedef unsigned int ViewerId;
 
+typedef double Score;
+
 struct Player
 {
     PlayerId id;
+    Score score;
 
     Point center;
     double radius;
 
     Velocity velocity;
 };
-
-typedef double Score;
 
 struct Coin
 {
@@ -54,7 +55,8 @@ struct FieldState
 
 struct Turn
 {
-    PlayerId id;
+    PlayerId player_id;
+    FieldStateId state_id;
     Acceleration acceleration;
 };
 

@@ -1,6 +1,6 @@
-#include "geometry.h"
+#include "util/geometry.h"
 
-#include "basics.h"
+#include "util/basics.h"
 
 #include <cmath>
 
@@ -14,7 +14,7 @@ double ab::Distance(const ab::Point lhs, const ab::Point rhs)
     return sqrt((lhs.x - rhs.x) * (lhs.x - rhs.x) + (lhs.y - rhs.y) * (lhs.y - rhs.y));
 }
 
-ab::Point Normalize(const Point point)
+ab::Point ab::Normalize(const ab::Point point)
 {
     const double length = Length(point);
     Point result = point;

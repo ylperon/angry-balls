@@ -1,0 +1,4 @@
+Import('env')
+
+cpp_files = ['parse_protocol.cpp']
+protocol_lib = env.StaticLibrary('protocol', cpp_files)

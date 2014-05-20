@@ -1,10 +1,10 @@
-#include "strategies.h"
+#include "strategies/strategies.h"
 
 #include <algorithm>
 #include <functional>
 #include <limits>
 
-#include "geometry.h"
+#include "util/geometry.h"
 
 ab::Acceleration ab::MoveToClosestStrategy::GetTurn(const ab::FieldState& state,
                                                     const ab::PlayerId player_id

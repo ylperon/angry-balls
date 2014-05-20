@@ -316,3 +316,6 @@ sympy-plots-for-*.tex/
 # xindy
 *.xdy
 
+# via https://github.com/github/gitignore/blob/master/SCons.gitignore
+# for projects that use SCons for building: http://http://www.scons.org/
+# .sconsign.dblite

@@ -1,0 +1,4 @@
+Import('env')
+
+cpp_files = ['geometry.cpp']
+util_lib = env.StaticLibrary('util', cpp_files)
