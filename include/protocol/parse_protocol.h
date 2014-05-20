@@ -29,6 +29,7 @@ struct Message
 
 struct ClientSubscribeRequestMessage : Message
 {
+    ClientSubscribeRequestMessage() { type = MessageType::kClientSubscribeRequestMessage; }
     virtual ~ClientSubscribeRequestMessage() {}
 };
 
@@ -37,11 +38,13 @@ struct ClientSubscribeResultMessage : Message
     bool result;
     PlayerId player_id;
 
+    ClientSubscribeResultMessage() { type = MessageType::kClientSubscribeResultMessage; }
     virtual ~ClientSubscribeResultMessage() {}
 };
 
 struct ViewerSubscribeRequestMessage : Message
 {
+    ViewerSubscribeRequestMessage() { type = MessageType::kViewerSubscribeRequestMessage; }
     virtual ~ViewerSubscribeRequestMessage() {}
 };
 
@@ -50,6 +53,7 @@ struct ViewerSubscribeResultMessage : Message
     bool result;
     ViewerId viewer_id;
 
+    ViewerSubscribeResultMessage() { type = MessageType::kViewerSubscribeResultMessage; }
     virtual ~ViewerSubscribeResultMessage() {}
 };
 
@@ -57,6 +61,7 @@ struct FieldStateMessage : Message
 {
     FieldState field_state;
 
+    FieldStateMessage() { type = MessageType::kFieldStateMessage; }
     virtual ~FieldStateMessage() {}
 };
 
@@ -65,6 +70,7 @@ struct TurnMessage : Message
     Turn turn;
     FieldStateId state_id;
 
+    TurnMessage() { type = MessageType::kTurnMessage; }
     virtual ~TurnMessage() {}
 };
 
