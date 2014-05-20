@@ -21,6 +21,7 @@ public:
         enum_to_string[ab::kViewerSubscribeResultMessage] = "VIEW_SUB_RESULT";
         enum_to_string[ab::kFieldStateMessage] = "STATE";
         enum_to_string[ab::kTurnMessage] = "TURN";
+        enum_to_string[ab::kFinishMessage] = "FINISH";
 
         for (auto iter = enum_to_string.begin(); iter != enum_to_string.end(); ++iter)
             string_to_enum[iter->second] = iter->first;
@@ -177,6 +178,15 @@ std::string BuildTurnMessage(const ab::TurnMessage& message)
     return writer.write(result);
 }
 
+std::string BuildFinishMessage(const ab::FinishMessage& message)
+{
+    Json::Value result;
+    result["type"] = ab::ToString(message.type);
+
+    Json::FastWriter writer;
+    return writer.write(result);
+}
+
 } // namespace
 
 std::string ab::BuildJsonMessage(const ab::Message* const message)
@@ -213,6 +223,11 @@ std::string ab::BuildJsonMessage(const ab::Message* const message)
                 = dynamic_cast<const TurnMessage* const>(message);
             assert(nullptr != turn_message);
             return BuildTurnMessage(*turn_message);
+        } case kFinishMessage: {
+            const FinishMessage * const finish_message
+                = dynamic_cast<const FinishMessage* const>(message);
+            assert(nullptr != finish_message);
+            return BuildFinishMessage(*finish_message);
         } default:
             assert(false);
             break;
@@ -223,11 +238,7 @@ namespace {
 
 std::unique_ptr<ab::Message> ParseClientSubscribeRequestMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::ClientSubscribeRequestMessage>
-        message_ptr(new ab::ClientSubscribeRequestMessage());
-    ab::ClientSubscribeRequestMessage& message = *message_ptr;
-    message.type = ab::kClientSubscribeRequestMessage;
-    return std::unique_ptr<ab::Message>(message_ptr.release());
+    return std::unique_ptr<ab::Message>(new ab::ClientSubscribeRequestMessage());
 }
 
 std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value& json)
@@ -235,7 +246,6 @@ std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value
     std::unique_ptr<ab::ClientSubscribeResultMessage>
         message_ptr(new ab::ClientSubscribeResultMessage());
     ab::ClientSubscribeResultMessage& message = *message_ptr;
-    message.type = ab::kClientSubscribeResultMessage;
     if (!json.isMember("result") || json["result"] != "fail" || json["result"] != "ok")
         return std::unique_ptr<ab::Message>();
 
@@ -254,11 +264,7 @@ std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeRequestMessage(const Json::Value& json)
 {
-    std::unique_ptr<ab::ViewerSubscribeRequestMessage>
-        message_ptr(new ab::ViewerSubscribeRequestMessage());
-    ab::ViewerSubscribeRequestMessage& message = *message_ptr;
-    message.type = ab::kViewerSubscribeRequestMessage;
-    return std::unique_ptr<ab::Message>(message_ptr.release());
+    return std::unique_ptr<ab::Message>(new ab::ViewerSubscribeRequestMessage());
 }
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value& json)
@@ -266,7 +272,6 @@ std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value
     std::unique_ptr<ab::ViewerSubscribeResultMessage>
         message_ptr(new ab::ViewerSubscribeResultMessage());
     ab::ViewerSubscribeResultMessage& message = *message_ptr;
-    message.type = ab::kViewerSubscribeResultMessage;
     if (!json.isMember("result") || json["result"] != "fail" || json["result"] != "ok")
         return std::unique_ptr<ab::Message>();
 
@@ -287,7 +292,6 @@ std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
 {
     std::unique_ptr<ab::FieldStateMessage> message_ptr(new ab::FieldStateMessage());
     ab::FieldStateMessage& message = *message_ptr;
-    message.type = ab::kFieldStateMessage;
 
     if (!json.isMember("state_id") || !json["state_id"].isUInt())
         return std::unique_ptr<ab::Message>();
@@ -374,7 +378,6 @@ std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
 {
     std::unique_ptr<ab::TurnMessage> message_ptr(new ab::TurnMessage());
     ab::TurnMessage& message = *message_ptr;
-    message.type = ab::kTurnMessage;
 
     if (!json.isMember("state_id") || !json["state_id"].isUInt())
         return std::unique_ptr<ab::Message>();
@@ -393,6 +396,11 @@ std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
     message.turn.acceleration.y = json["a_y"].asDouble();
 
     return std::unique_ptr<ab::Message>(message_ptr.release());
+}
+
+std::unique_ptr<ab::Message> ParseFinishMessage(const Json::Value& json)
+{
+    return std::unique_ptr<ab::Message>(new ab::FinishMessage());
 }
 
 } // namespace
@@ -422,6 +430,8 @@ std::unique_ptr<ab::Message> ab::ParseJsonMessage(const std::string& json)
             return ParseFieldStateMessage(root);
         case kTurnMessage:
             return ParseTurnMessage(root);
+        case kFinishMessage:
+            return ParseFinishMessage(root);
         default:
             assert(false);
             break;

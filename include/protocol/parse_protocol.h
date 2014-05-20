@@ -13,7 +13,8 @@ enum MessageType
     kViewerSubscribeRequestMessage,
     kViewerSubscribeResultMessage,
     kFieldStateMessage,
-    kTurnMessage
+    kTurnMessage,
+    kFinishMessage
 };
 
 std::string ToString(const MessageType type);
@@ -29,7 +30,7 @@ struct Message
 
 struct ClientSubscribeRequestMessage : Message
 {
-    ClientSubscribeRequestMessage() { type = MessageType::kClientSubscribeRequestMessage; }
+    ClientSubscribeRequestMessage() { type = kClientSubscribeRequestMessage; }
     virtual ~ClientSubscribeRequestMessage() {}
 };
 
@@ -38,13 +39,13 @@ struct ClientSubscribeResultMessage : Message
     bool result;
     PlayerId player_id;
 
-    ClientSubscribeResultMessage() { type = MessageType::kClientSubscribeResultMessage; }
+    ClientSubscribeResultMessage() { type = kClientSubscribeResultMessage; }
     virtual ~ClientSubscribeResultMessage() {}
 };
 
 struct ViewerSubscribeRequestMessage : Message
 {
-    ViewerSubscribeRequestMessage() { type = MessageType::kViewerSubscribeRequestMessage; }
+    ViewerSubscribeRequestMessage() { type = kViewerSubscribeRequestMessage; }
     virtual ~ViewerSubscribeRequestMessage() {}
 };
 
@@ -53,7 +54,7 @@ struct ViewerSubscribeResultMessage : Message
     bool result;
     ViewerId viewer_id;
 
-    ViewerSubscribeResultMessage() { type = MessageType::kViewerSubscribeResultMessage; }
+    ViewerSubscribeResultMessage() { type = kViewerSubscribeResultMessage; }
     virtual ~ViewerSubscribeResultMessage() {}
 };
 
@@ -61,7 +62,7 @@ struct FieldStateMessage : Message
 {
     FieldState field_state;
 
-    FieldStateMessage() { type = MessageType::kFieldStateMessage; }
+    FieldStateMessage() { type = kFieldStateMessage; }
     virtual ~FieldStateMessage() {}
 };
 
@@ -70,8 +71,14 @@ struct TurnMessage : Message
     Turn turn;
     FieldStateId state_id;
 
-    TurnMessage() { type = MessageType::kTurnMessage; }
+    TurnMessage() { type = kTurnMessage; }
     virtual ~TurnMessage() {}
+};
+
+struct FinishMessage : Message
+{
+    FinishMessage() { type = kFieldStateMessage; }
+    virtual ~FinishMessage() {}
 };
 
 std::string BuildJsonMessage(const Message* const message);
