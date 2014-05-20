@@ -11,8 +11,12 @@
 #include <fstream>
 #include <functional>
 
+#include "protocol/parse_protocol.h"
+
 struct WebServerOptions {
   uint16_t listen_port = 8080;
+  std::string game_server_host = "localhost";
+  uint16_t game_server_port = 9011;
 };
 
 struct ErrorValue {
@@ -149,6 +153,22 @@ class ClientHandler {
 public:
   ClientHandler(WebServer& server, int fd, SocketAddress client_addr);
   void serve();
+};
+
+class ViewerClient {
+  WebServerOptions options;
+  ab::FieldState field;
+  bool have_field;
+  std::mutex field_mutex;
+  
+  Socket socket;
+
+  ErrorValue handshake();
+  ErrorValue get_next_field_state(bool& should_continue);
+public:
+  ViewerClient(const WebServerOptions& options);
+  void get_field(ab::FieldState& field, bool& have_field);
+  int run();
 };
 
 const ErrorValue socket_accept(const Socket& socket,

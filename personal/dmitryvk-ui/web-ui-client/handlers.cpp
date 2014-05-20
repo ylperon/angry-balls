@@ -69,29 +69,22 @@ const HttpResponse file_handler(const std::string& filename,
   return result;
 }
 
-const HttpResponse game_state_handler(const HttpRequest& request) {
+const HttpResponse game_state_handler(ViewerClient& client, const HttpRequest& request) {
   HttpResponse result;
   result.version = request.version;
   result.status_code = 200;
   result.status_message = "OK";
   result.headers.push_back(HttpHeader("content-type", "application/json; charset=utf-8"));
   
-  string body = "{\n\
-    \"type\" : \"STATE\",\n\
-    \"state_id\" : 1,\n\
-    \"field_radius\" : 100.0,\n\
-    \"player_radius\" : 15.0,\n\
-    \"coin_radius\" : 10.0,\n\
-    \"time_delta\" : 0.1,\n\
-    \"velocity_max\" : 1.0,\n\
-    \"players\" : [\n\
-        { \"id\" : 1, \"x\" : 10, \"y\" : 10, \"v_x\" : 0, \"v_y\" : 0, \"score\" : 100 }\n\
-    ],\n\
-    \"coins\" : [\n\
-        { \"x\" : 30, \"y\" : -50, \"value\" : 1 }\n\
-    ]\n\
-}\n\
-";
+  ab::FieldState field;
+  bool have_field;
+  client.get_field(field, have_field);
+  
+  ab::FieldStateMessage msg;
+  msg.field_state = field;
+
+  string body = ab::BuildJsonMessage(&msg);
+
   result.response_body = vector<unsigned char>(body.begin(), body.end());
   return result;
 }

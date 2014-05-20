@@ -149,43 +149,6 @@ ErrorValue ClientHandler::read_http_request(vector<unsigned char>& result) {
     result.insert(result.end(), buf.begin(), buf.begin() + buf_length);
   }
 }
- 
-static ErrorValue connect_socket(Socket& socket, const string& hostname, uint16_t port) {
-  addrinfo gni_hints;
-  memset(&gni_hints, 0, sizeof(gni_hints));
-  gni_hints.ai_family = AF_INET;
-  gni_hints.ai_socktype = SOCK_STREAM;
-  gni_hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
-  struct addrinfo* addr;
-  int rc = getaddrinfo(hostname.c_str(), NULL, &gni_hints, &addr);
-  if (rc != 0) {
-    ostringstream msg_stream;
-    msg_stream << "Failed to do hostname lookup for " << hostname << ": ";
-    msg_stream << gai_strerror(rc);
-    return ErrorValue::error(msg_stream.str());
-  }
-
-  if (addr == nullptr) {
-    return ErrorValue::error("Failed to do hostname lookup: no addressed returned");
-  }
-
-  struct sockaddr_in socket_addr;
-  memcpy(&socket_addr, addr->ai_addr, sizeof(socket_addr));
-  freeaddrinfo(addr);
-  socket_addr.sin_port = htons(port);
-
-  // cerr << "got hostname addr: " << ip4_to_string(ntohl(socket_addr.sin_addr.s_addr)) << endl;
-
-  // cerr << "connecting" << endl;
-
-  if (connect(socket.GetFd(), reinterpret_cast<sockaddr*>(&socket_addr), sizeof(socket_addr)) != 0) {
-    return ErrorValue::error_from_errno("Failed to connect to host: ");
-  }
-
-  // cerr << "got connection" << endl;
-
-  return ErrorValue::ok();
-}
 
 void ClientHandler::try_to_report_error_to_client(unsigned status_code, const ErrorValue& value) {
   ostringstream message_stream;
