@@ -213,7 +213,9 @@ std::string ab::BuildJsonMessage(const ab::Message* const message)
                 = dynamic_cast<const TurnMessage* const>(message);
             assert(nullptr != turn_message);
             return BuildTurnMessage(*turn_message);
-        }
+        } default:
+            assert(false);
+            break;
     }
 }
 
@@ -420,5 +422,8 @@ std::unique_ptr<ab::Message> ab::ParseJsonMessage(const std::string& json)
             return ParseFieldStateMessage(root);
         case kTurnMessage:
             return ParseTurnMessage(root);
+        default:
+            assert(false);
+            break;
     }
 }
