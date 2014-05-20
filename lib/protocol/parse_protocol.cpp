@@ -238,11 +238,13 @@ namespace {
 
 std::unique_ptr<ab::Message> ParseClientSubscribeRequestMessage(const Json::Value& json)
 {
+    assert(json["type"] == "CLI_SUB_REQUEST");
     return std::unique_ptr<ab::Message>(new ab::ClientSubscribeRequestMessage());
 }
 
 std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value& json)
 {
+    assert(json["type"] == "CLI_SUB_RESULT");
     std::unique_ptr<ab::ClientSubscribeResultMessage>
         message_ptr(new ab::ClientSubscribeResultMessage());
     ab::ClientSubscribeResultMessage& message = *message_ptr;
@@ -264,11 +266,13 @@ std::unique_ptr<ab::Message> ParseClientSubscribeResultMessage(const Json::Value
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeRequestMessage(const Json::Value& json)
 {
+    assert(json["type"] == "VIEW_SUB_REQUEST");
     return std::unique_ptr<ab::Message>(new ab::ViewerSubscribeRequestMessage());
 }
 
 std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value& json)
 {
+    assert(json["type"] == "VIEW_SUB_RESULT");
     std::unique_ptr<ab::ViewerSubscribeResultMessage>
         message_ptr(new ab::ViewerSubscribeResultMessage());
     ab::ViewerSubscribeResultMessage& message = *message_ptr;
@@ -290,6 +294,7 @@ std::unique_ptr<ab::Message> ParseViewerSubscribeResultMessage(const Json::Value
 
 std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
 {
+    assert(json["type"] == "STATE");
     std::unique_ptr<ab::FieldStateMessage> message_ptr(new ab::FieldStateMessage());
     ab::FieldStateMessage& message = *message_ptr;
 
@@ -376,6 +381,7 @@ std::unique_ptr<ab::Message> ParseFieldStateMessage(const Json::Value& json)
 
 std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
 {
+    assert(json["type"] == "TURN");
     std::unique_ptr<ab::TurnMessage> message_ptr(new ab::TurnMessage());
     ab::TurnMessage& message = *message_ptr;
 
@@ -400,6 +406,7 @@ std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
 
 std::unique_ptr<ab::Message> ParseFinishMessage(const Json::Value& json)
 {
+    assert(json["type"] == "FINISH");
     return std::unique_ptr<ab::Message>(new ab::FinishMessage());
 }
 
