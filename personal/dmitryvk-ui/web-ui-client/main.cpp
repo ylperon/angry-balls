@@ -1,15 +1,48 @@
 #include "webserver.hpp"
 #include "handlers.hpp"
 
+#include <string>
+#include <vector>
 #include <iostream>
 #include <sstream>
 
+using std::string;
+using std::vector;
 using std::cout;
 using std::endl;
 
+void print_usage(const string& arg0) {
+  cout << "Usage: " << arg0 << " [--help] [--http-port 9010] [--game-server-host localhost] [--game-server-port 9011]" << endl;
+}
+
+WebServerOptions parse_options(const vector<string>& args, bool& help_was_requested) {
+  WebServerOptions result;
+  result.listen_port = 9010;
+  auto it = args.begin();
+  help_was_requested = false;
+  while (it < args.end()) {
+    const string& cur_arg = *it++;
+    if (cur_arg == "--help") {
+      help_was_requested = true;
+      return result;
+    } if (cur_arg == "--http-port") {
+      result.listen_port = std::stoul(*it++);
+    } else if (cur_arg == "--game-server-host") {
+      result.game_server_host = *it++;
+    } else if (cur_arg == "--game-server-port") {
+      result.game_server_port = std::stoul(*it++);
+    }
+  }
+  return result;
+}
+
 int main (int argc, char * argv[]) {
-  WebServerOptions options;
-  options.listen_port = 9010;
+  bool help_was_requested;
+  WebServerOptions options = parse_options(vector<string>(&argv[1], &argv[argc]), help_was_requested);
+  if (help_was_requested) {
+    print_usage(argv[0]);
+    return 1;
+  }
   ViewerClient client(options);
   WebServer server(options);
   bool is_development_mode = argc == 2 && std::string(argv[1]) == "--dev";
