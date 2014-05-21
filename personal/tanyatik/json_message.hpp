@@ -1,10 +1,13 @@
+#pragma once
+
 #include "mio/mio.hpp"
 
 namespace ab {
 
-class JsonRequestParser : public mio::RequestParser {
+class JsonRequestParser : public mio::RequestHandler {
 private:
     std::weak_ptr<MessageManager> message_manager_;
+    std::weak_ptr<mio::Connection> connection_;
 
 public:
     JsonRequestParser(std::weak_ptr<MessageManager> message_manager) :
@@ -13,17 +16,25 @@ public:
 
     // request is raw json
     void handleRequest(mio::Buffer request) {
-        auto message = ParseJsonMessage(std::string(request.data()));
-        message_manager_->receiveMessage(message);
+        auto message = ParseJsonMessage(std::string(request->data()));
+        auto mm = message_manager_.lock();
+        auto conn = connection_.lock();
+        if (mm && conn) {
+            mm->ReceiveMessage(std::move(message), conn);
+        }
+    }
+
+    void setConnection(std::weak_ptr<mio::Connection> connection) {
+        connection_ = connection;
     }
 };
 
-class JsonResponsePrinter {
+class JsonResponseBuilder {
 public:
     static mio::Buffer BuildJsonResponse(const Message& message) {
-        auto json_string = BuildJsonMessage(message);
+        auto json_string = BuildJsonMessage(&message);
 
-        return mio::makeBuffer(json_string.begin(), json_string.end());
+        return std::make_shared<mio::BufferVector>(json_string.begin(), json_string.end());
     }
 };
 

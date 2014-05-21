@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <unistd.h>
 
 namespace mio {
 

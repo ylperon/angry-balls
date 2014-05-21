@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-namespace tanyatik {
+namespace ab {
 
 template<typename T>
 class LockFreeQueue {
@@ -267,4 +267,4 @@ private:
     }
 };
 
-} // namespace tanyatik
+} // namespace ab

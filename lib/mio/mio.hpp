@@ -39,6 +39,11 @@ public:
 
 class Connection;
 
+class ConnectionFactory {
+public:
+    virtual std::shared_ptr<Connection> createConnection(std::shared_ptr<Socket>) = 0;
+};
+
 class ConnectionManager {
 public:
     virtual std::shared_ptr<Connection> addConnection(std::shared_ptr<Connection>) = 0;

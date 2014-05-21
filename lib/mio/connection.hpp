@@ -1,3 +1,5 @@
+#pragma once
+
 #include "mio.hpp"
 
 namespace mio {
