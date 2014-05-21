@@ -230,7 +230,7 @@ void field_tick_random(ab::FieldState& field) {
     player.center.y += vy;
     player.velocity.x = vx / field.time_delta;
     player.velocity.y = vy / field.time_delta;
-    if (std::rand() % 100 < 1) {
+    if (std::rand() % 100 < 3) {
       player.score = player.score + 1;
     }
   }
