@@ -43,7 +43,6 @@ public:
         {}
 
     virtual void processDataChunk(mio::Buffer buffer) {
-        std::cerr << "P: processDataChunk\n";
         auto buffer_seek = buffer->begin();
 
         while (buffer_seek != buffer->end()) { 

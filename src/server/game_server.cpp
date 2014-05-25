@@ -27,11 +27,13 @@ private:
     std::weak_ptr<MessageManager> message_manager_;
 
 public:
-   GameConnectionFactory(std::weak_ptr<MessageManager> message_manager) : 
+    GameConnectionFactory(std::weak_ptr<mio::ConnectionManager> connection_manager,
+            std::weak_ptr<MessageManager> message_manager) : 
+        ConnectionFactory(connection_manager),
         message_manager_(message_manager)
         {} 
 
-    std::shared_ptr<mio::Connection> createConnection(std::shared_ptr<mio::Socket> socket) {
+    std::shared_ptr<mio::Connection> createConnectionImpl(std::shared_ptr<mio::Socket> socket) {
         auto request_handler = std::make_shared<JsonRequestParser>(message_manager_);
 
         auto reader = std::make_shared<mio::AsyncReader>(socket,
@@ -50,13 +52,13 @@ public:
 class GameIoServer {
 private:
     std::shared_ptr<mio::IOServer<mio::EpollDescriptorManager>> io_server_;
-    std::shared_ptr<mio::NoLockConnectionManager> connection_manager_;
+    std::shared_ptr<mio::ConnectionManager> connection_manager_;
 
     void addServerConnection(std::shared_ptr<MessageManager> message_manager, 
             mio::ServerConfig config) {
         auto server_socket = std::make_shared<mio::ServerSocket>(config.address, config.port);
         auto connection_factory = 
-            std::make_shared<GameConnectionFactory>(message_manager);
+            std::make_shared<GameConnectionFactory>(connection_manager_, message_manager);
 
         auto server_connection = 
             std::make_shared<mio::ServerConnection>(server_socket, connection_factory);
@@ -89,9 +91,9 @@ public:
         observers_manager_(std::make_shared<ObserversManager>()),
         message_manager_(std::make_shared<MessageManager>(observers_manager_)),
         game_io_server_(message_manager_, mio::ServerConfig(ab::PORT)),
-        game_state_manager_(std::make_shared<GameStateManager>
-                (message_manager_, observers_manager_)) {
-        observers_manager_->setMessageManager(message_manager_);
+        game_state_manager_(std::make_shared<GameStateManager>(observers_manager_)) {
+        observers_manager_->SetMessageManager(message_manager_);
+        observers_manager_->SetGameStateManager(game_state_manager_);
     } 
 
     void run() {

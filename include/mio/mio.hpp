@@ -39,14 +39,31 @@ public:
 
 class Connection;
 
-class ConnectionFactory {
-public:
-    virtual std::shared_ptr<Connection> createConnection(std::shared_ptr<Socket>) = 0;
-};
-
 class ConnectionManager {
 public:
     virtual std::shared_ptr<Connection> addConnection(std::shared_ptr<Connection>) = 0;
+};
+
+class ConnectionFactory {
+private:
+    std::weak_ptr<ConnectionManager> connection_manager_;
+    virtual std::shared_ptr<Connection> createConnectionImpl(std::shared_ptr<Socket>) = 0;
+
+public:
+    ConnectionFactory(std::weak_ptr<ConnectionManager> connection_manager) :
+        connection_manager_(connection_manager)
+        {}
+
+    std::shared_ptr<Connection> createConnection(std::shared_ptr<Socket> socket) {
+        auto connection = createConnectionImpl(socket);
+    
+        auto conn_m = connection_manager_.lock();
+        if (conn_m) {
+            conn_m->addConnection(connection); 
+        }
+    
+        return connection;
+    }
 };
 
 class InputProtocol {

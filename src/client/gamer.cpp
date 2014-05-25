@@ -34,9 +34,14 @@ bool IOClient::Connection(size_t port) const
 
 int IOClient::SendAll(const std::string& buf, int flags) const
 {
+    uint32_t length = buf.size();
+    char *length_buffer = (char *) (&length);
+
+    auto full_buf = std::string(length_buffer, length_buffer + sizeof(length)) + buf;
+
     size_t total_sent = 0;
-    while (total_sent < buf.length()) {
-        int current_sent = send(sockfd_, buf.c_str() + total_sent, buf.length() - total_sent, flags);
+    while (total_sent < full_buf.length()) {
+        int current_sent = send(sockfd_, full_buf.c_str() + total_sent, full_buf.length() - total_sent, flags);
         if (current_sent == -1)
             return -1;
         total_sent += current_sent;

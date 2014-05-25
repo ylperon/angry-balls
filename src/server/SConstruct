@@ -1,5 +1,5 @@
 cpp_path = ['../../../include/']
-cpp_flags = ['-g', '-Wall', '-std=c++11', '-stdlib=libc++', '-pthread']
+cpp_flags = ['-g', '-Wall', '-std=c++11', '-pthread']
 compiler = 'clang++'
 
 env = Environment(

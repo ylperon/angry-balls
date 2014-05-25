@@ -34,7 +34,6 @@ public:
                 // read successful
                 char *buffer_end = buffer + recv_result;
                 Buffer data_chunk(std::make_shared<BufferVector>(buffer, buffer_end));
-
                 protocol_->processDataChunk(data_chunk);
             } else if (recv_result < 0) {
                 if (-recv_result == EWOULDBLOCK || -recv_result == EAGAIN) {
