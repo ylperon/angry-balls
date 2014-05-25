@@ -15,7 +15,7 @@ public:
     */
    virtual FieldState Emulate(const FieldState& state, const std::vector<Turn>& turns) = 0;
 
-   virtual void SetStepsNumber() = 0;
+   virtual void SetStepsNumber(const size_t steps_number) = 0;
 
    virtual ~EmulatorInterface() {}
 };
