@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-#include ""
+#include "protocol/parse_protocol.h"
 #include "ab/strategy_interface.h"
 #include "util/basics.h"
 
@@ -39,7 +39,7 @@ public:
 
     bool ConnectionToServer(size_t port);
     void Game() const;
-    std::string Turn(const std::string& state) const;
+    bool Turn(const std::string& json_state, std::string* json_turn) const;
 
 private:
     size_t id_;
