@@ -1,4 +1,11 @@
 Import('env')
 
+json_library_path = '../../../contrib/jsoncpp/src/lib_json/';
+
+json_library_files = [json_library_path + file for file in ['json_value.cpp', 'json_reader.cpp', 'json_writer.cpp']]
+
 cpp_files = ['parse_protocol.cpp']
+
+cpp_files.append(json_library_files)
+
 protocol_lib = env.StaticLibrary('protocol', cpp_files)
