@@ -1,0 +1,4 @@
+Import('env')
+
+cpp_files = ['helpers.cpp']
+emulator_lib = env.StaticLibrary('emulator', cpp_files)
