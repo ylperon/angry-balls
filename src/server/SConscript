@@ -1,4 +1,10 @@
 Import('env')
 
-cpp_files = Glob('*.cpp')
-server = env.Program(cpp_files, LIBS = ['pthread', 'libprotocol.a'], LIBPATH = ['../../../lib/protocol/build-scons'])
+cpp_files = ['game_server.cpp',
+             'message_manager.cpp',
+             'observers_manager.cpp'
+            ]
+server_bin = env.Program(cpp_files, 
+                         LIBS = ['pthread', 'libprotocol.a', 'c++'],
+                         LIBPATH = ['../../../lib/protocol/build-scons/'],
+                        )
