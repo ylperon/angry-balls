@@ -1,0 +1,4 @@
+Import('env')
+
+cpp_files = ['dummy_coin_generator.cpp']
+coin_generators_lib = env.StaticLibrary('coin_generators', cpp_files)
