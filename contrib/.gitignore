@@ -1,0 +1,3 @@
+jsoncpp/src/lib_json/json_reader.o
+jsoncpp/src/lib_json/json_value.o
+jsoncpp/src/lib_json/json_writer.o

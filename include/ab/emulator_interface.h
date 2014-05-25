@@ -10,10 +10,7 @@ struct Turn;
 class EmulatorInterface
 {
 public:
-   /* Physics emulation.
-    * FieldState::id of the returned state must be the same as it was in @state.
-    */
-   virtual FieldState Emulate(const FieldState& state, const std::vector<Turn>& turns) = 0;
+   virtual void Emulate(const std::vector<Turn>& turns, FieldState& state) = 0;
 
    virtual void SetStepsNumber(const size_t steps_number) = 0;
 
