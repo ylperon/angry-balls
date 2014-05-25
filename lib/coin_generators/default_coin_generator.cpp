@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <random>
 
 namespace {
 
@@ -14,14 +15,17 @@ double pi()
 
 } // namespace
 
-ab::DummyCoinGenerator::~DummyCoinGenerator() {}
+ab::DefaultCoinGenerator::~DefaultCoinGenerator() {}
 
-ab::Coin ab::DummyCoinGenerator::GetCoin(const double field_radius, const double coin_radius)
+ab::Coin ab::DefaultCoinGenerator::GetCoin(const double field_radius, const double coin_radius)
 {
     assert(coin_radius < field_radius);
     const double max_radius = field_radius - coin_radius;
-    const double radius = max_radius / 2;
-    const double alpha = pi() / 4.0;
+    std::uniform_real_distribution<double> radius_distribution(0, max_radius);
+    std::uniform_real_distribution<double> alpha_distribution(0, pi() * 2.0);
+
+    const double radius = radius_distribution(generator_);
+    const double alpha = alpha_distribution(generator_);
     ab::Coin coin;
     coin.value = 1.0;
     coin.radius = coin_radius;
