@@ -2,7 +2,8 @@ Import('env')
 
 cpp_files = ['game_server.cpp',
              'message_manager.cpp',
-             'observers_manager.cpp'
+             'observers_manager.cpp',
+             'game_state_manager.cpp'
             ]
 server_bin = env.Program(cpp_files, 
                          LIBS = ['pthread', 'libprotocol.a', 'c++'],

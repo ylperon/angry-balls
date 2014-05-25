@@ -16,6 +16,7 @@ public:
 
     // request is raw json
     void handleRequest(mio::Buffer request) {
+        std::cout << "handle request\n";
         auto message = ParseJsonMessage(std::string(request->data()));
         auto mm = message_manager_.lock();
         auto conn = connection_.lock();

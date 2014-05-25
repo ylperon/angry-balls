@@ -9,6 +9,21 @@
 
 namespace ab {
 
+ConnectionId MessageManager::AddConnection(std::weak_ptr<mio::Connection> connection) {
+    connections_.push_back(connection);
+    return connections_.size();
+}
+
+std::weak_ptr<mio::Connection> MessageManager::GetConnection(ConnectionId connection) {
+    return connections_.at(connection);
+}
+
+void MessageManager::ReceiveMessage(std::unique_ptr<Message> message, 
+        std::weak_ptr<mio::Connection> connection) {
+    ConnectionId connection_id = AddConnection(connection);
+    DispatchMessage(std::move(message), connection_id);
+}
+
 void MessageManager::DispatchMessage(std::unique_ptr<Message > message, ConnectionId connection_id) {
     std::shared_ptr<ObserversManager> om(observers_manager_.lock());
     if (!om) {
@@ -46,4 +61,5 @@ void MessageManager::SendMessage(const Message &message, ConnectionId connection
         connection->addOutput(message_buffer);
     }
 }
+
 } // namespace ab
