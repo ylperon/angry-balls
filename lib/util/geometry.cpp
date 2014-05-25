@@ -2,6 +2,7 @@
 
 #include "util/basics.h"
 
+#include <cassert>
 #include <cmath>
 
 double ab::Length(const ab::Point point)
@@ -14,14 +15,12 @@ double ab::Distance(const ab::Point lhs, const ab::Point rhs)
     return sqrt((lhs.x - rhs.x) * (lhs.x - rhs.x) + (lhs.y - rhs.y) * (lhs.y - rhs.y));
 }
 
-ab::Point ab::Normalize(const ab::Point point)
+void ab::Normalize(ab::Point * const point)
 {
-    const double length = Length(point);
-    Point result = point;
-    result.x /= length;
-    result.y /= length;
-
-    return result;
+    assert(nullptr != point);
+    const double length = Length(*point);
+    point->x /= length;
+    point->y /= length;
 }
 
 bool ab::Intersect(const ab::Point lhs_center, const double lhs_radius,
