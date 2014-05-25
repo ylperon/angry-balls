@@ -201,6 +201,7 @@ void init_field(ab::FieldState& field) {
   p1.radius = 5;
   p1.velocity.x = 0;
   p1.velocity.y = 0;
+  p1.score = 0;
   ab::Player p2;
   p2.id = 2;
   p2.center.x = 65;
@@ -208,12 +209,13 @@ void init_field(ab::FieldState& field) {
   p2.radius = 10;
   p2.velocity.x = 0;
   p2.velocity.y = 0;
+  p1.score = 0;
   field.players.push_back(p1);
   field.players.push_back(p2);
 
   ab::Coin c1;
-  c1.center.x = 70;
-  c1.center.y = 80;
+  c1.center.x = -30;
+  c1.center.y = 70;
   c1.radius = 5;
   c1.value = 15;
   field.coins.push_back(c1);
@@ -222,12 +224,15 @@ void init_field(ab::FieldState& field) {
 void field_tick_random(ab::FieldState& field) {
   field.id += 1;
   for (ab::Player& player: field.players) {
-    double vx = static_cast<double>(std::rand() % 100) / 100 - 0.5;
-    double vy = static_cast<double>(std::rand() % 100) / 100 - 0.5;
+    double vx = (static_cast<double>(std::rand() % 2000) / 1000 - 1.0) * 3;
+    double vy = (static_cast<double>(std::rand() % 2000) / 1000 - 1.0) * 3;
     player.center.x += vx;
     player.center.y += vy;
     player.velocity.x = vx / field.time_delta;
     player.velocity.y = vy / field.time_delta;
+    if (std::rand() % 100 < 3) {
+      player.score = player.score + 1;
+    }
   }
 
 }

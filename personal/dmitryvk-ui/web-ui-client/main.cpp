@@ -12,7 +12,7 @@ using std::cout;
 using std::endl;
 
 void print_usage(const string& arg0) {
-  cout << "Usage: " << arg0 << " [--help] [--http-port 9010] [--game-server-host localhost] [--game-server-port 9011]" << endl;
+  cout << "Usage: " << arg0 << " [--help] [--dev] [--http-port 9010] [--game-server-host localhost] [--game-server-port 9011]" << endl;
 }
 
 WebServerOptions parse_options(const vector<string>& args, bool& help_was_requested) {
@@ -31,6 +31,8 @@ WebServerOptions parse_options(const vector<string>& args, bool& help_was_reques
       result.game_server_host = *it++;
     } else if (cur_arg == "--game-server-port") {
       result.game_server_port = std::stoul(*it++);
+    } else if (cur_arg == "--dev") {
+      result.developer_mode = true;
     }
   }
   return result;
@@ -45,8 +47,7 @@ int main (int argc, char * argv[]) {
   }
   ViewerClient client(options);
   WebServer server(options);
-  bool is_development_mode = argc == 2 && std::string(argv[1]) == "--dev";
-  if (!is_development_mode) {
+  if (!options.developer_mode) {
     server.url_handlers["/"] = index_handler;
     server.url_handlers["/jquery.js"] = jquery_handler;
     server.url_handlers["/app.js"] = app_js_handler;

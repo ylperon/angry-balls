@@ -17,6 +17,7 @@ struct WebServerOptions {
   uint16_t listen_port = 8080;
   std::string game_server_host = "localhost";
   uint16_t game_server_port = 9011;
+  bool developer_mode = false;
 };
 
 struct ErrorValue {
