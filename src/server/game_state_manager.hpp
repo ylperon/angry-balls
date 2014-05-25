@@ -26,7 +26,7 @@ public:
     void run() {
         while(true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            std::cerr << "Cycle completed\n";
+            //std::cerr << "Cycle completed\n";
         }
     }
 };

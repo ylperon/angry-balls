@@ -1,4 +1,4 @@
 Import('env')
 
 cpp_files = Glob('*.cpp')
-server = env.Program(cpp_files, LIBS = ['libprotocol.a'], LIBPATH = ['../../../lib/protocol/build-scons'], LINKFLAGS="--static")
+server = env.Program(cpp_files, LIBS = ['pthread', 'libprotocol.a'], LIBPATH = ['../../../lib/protocol/build-scons'])

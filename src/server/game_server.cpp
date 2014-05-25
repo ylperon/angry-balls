@@ -86,6 +86,7 @@ private:
 
 public:
     GameServer() :
+        observers_manager_(std::make_shared<ObserversManager>()),
         message_manager_(std::make_shared<MessageManager>(observers_manager_)),
         game_io_server_(message_manager_),
         game_state_manager_(std::make_shared<GameStateManager>
