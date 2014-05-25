@@ -4,6 +4,8 @@
 
 namespace ab {
 
+static const int PORT = 8992;
+
 struct Point
 {
     double x;

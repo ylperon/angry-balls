@@ -24,9 +24,9 @@ struct ServerConfig {
     std::string address;    
     int port;
 
-    ServerConfig() :
-        address("127.0.0.1"),
-        port(8992)
+    ServerConfig(int port = 8992, std::string address = "127.0.0.1") :
+        address(address),
+        port(port)
         {}
 };
 

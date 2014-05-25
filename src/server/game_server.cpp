@@ -88,7 +88,7 @@ public:
     GameServer() :
         observers_manager_(std::make_shared<ObserversManager>()),
         message_manager_(std::make_shared<MessageManager>(observers_manager_)),
-        game_io_server_(message_manager_),
+        game_io_server_(message_manager_, mio::ServerConfig(ab::PORT)),
         game_state_manager_(std::make_shared<GameStateManager>
                 (message_manager_, observers_manager_)) {
         observers_manager_->setMessageManager(message_manager_);
