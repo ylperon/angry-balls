@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "client/gamer.h"
+#include "strategies/strategies.h"
 
 namespace ab {
 
@@ -114,7 +115,7 @@ bool Gamer<Strategy>::ConnectionToServer(size_t port)
 }
 
 template <class Strategy>
-void Gamer<Strategy>::Game(size_t port) const
+void Gamer<Strategy>::Game(size_t port)
 {
     if (!ConnectionToServer(port))
         return;
@@ -135,7 +136,7 @@ void Gamer<Strategy>::Game(size_t port) const
 }
 
 template <class Strategy>
-bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn) const
+bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn)
 {
     std::unique_ptr<Message> message = ParseJsonMessage(json_state);
     if (!message) {
@@ -153,7 +154,7 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
     TurnMessage turn_message;
     turn_message.turn.player_id = id_;
     turn_message.turn.state_id = field_state_message->field_state.id;
-    turn_message.turn.acceleration = strategy_(field_state_message->field_state, id_);
+    turn_message.turn.acceleration = strategy_.GetTurn(field_state_message->field_state, id_);
     turn_message.state_id = field_state_message->field_state.id;
 
     *json_turn = BuildJsonMessage(&turn_message);
@@ -161,3 +162,8 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
 }
 
 } // namespace ab
+
+int main() {
+    ab::Gamer<ab::DoNothingStrategy> gamer;
+    gamer.Game(ab::PORT);
+}

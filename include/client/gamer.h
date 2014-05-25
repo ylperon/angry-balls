@@ -34,11 +34,11 @@ template <class Strategy>
 class Gamer
 {
 public:
-    void Game(size_t port) const;
+    void Game(size_t port);
 
 private:
     bool ConnectionToServer(size_t port);
-    bool Turn(const std::string& json_state, std::string* json_turn) const;
+    bool Turn(const std::string& json_state, std::string* json_turn);
 
 private:
     size_t id_;
