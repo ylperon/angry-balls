@@ -4,24 +4,28 @@
 
 namespace ab {
 
+class DoNothingStrategy : public StrategyInterface
+{
+public:
+    Acceleration GetTurn(const FieldState& state, const PlayerId player_id) override;
+
+    virtual ~DoNothingStrategy() {}
+};
+
 class MoveToClosestStrategy : public StrategyInterface
 {
 public:
-    Acceleration GetTurn(const FieldState& state, const PlayerId player_id);
+    Acceleration GetTurn(const FieldState& state, const PlayerId player_id) override;
 
-    virtual ~MoveToClosestStrategy()
-    {
-    }
+    virtual ~MoveToClosestStrategy() {}
 };
 
 class PredictiveStrategy : public StrategyInterface
 {
 public:
-    Acceleration GetTurn(const FieldState& state, const PlayerId player_id);
+    Acceleration GetTurn(const FieldState& state, const PlayerId player_id) override;
 
-    virtual ~PredictiveStrategy()
-    {
-    }
+    virtual ~PredictiveStrategy() {}
 };
 
 } // namespace ab
