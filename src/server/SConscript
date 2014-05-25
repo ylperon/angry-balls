@@ -1,0 +1,6 @@
+Import('env')
+
+libprotocol = env.StaticLibrary(target = "libprotocol.a", source = Glob('../../lib/protocol/parse_protocol.cpp'), LIBS = ['../../contrib/jsoncpp/libs/linux-gcc-4.8.2/libjson_linux-gcc-4.8.2_libmt.a'])
+
+cpp_files = Glob('*.cpp')
+server = env.Program(cpp_files + [libprotocol], LIBS = ['../../contrib/jsoncpp/libs/linux-gcc-4.8.2/libjson_linux-gcc-4.8.2_libmt.a'])

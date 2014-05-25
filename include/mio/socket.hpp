@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
+#include <errno.h>
 
 namespace mio {
 

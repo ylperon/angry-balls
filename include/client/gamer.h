@@ -8,11 +8,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-
-//#include "strategy.h" [in production]
-//#include "basics.h" [in production]
-//#include "../permanentstudent/strategy.h"
-#include "../util/basics.h"
+#include "protocol/parse_protocol.h"
+#include "ab/strategy_interface.h"
+#include "util/basics.h"
 
 namespace ab {
 
@@ -36,17 +34,16 @@ template <class Strategy>
 class Gamer
 {
 public:
-    Gamer();
-    ~Gamer();
-
-    bool ConnectionToServer(size_t port);
-    void Game() const;
-    std::string Turn(const std::string& state) const;
+    void Game(size_t port) const;
 
 private:
-    IOClient client_;
+    bool ConnectionToServer(size_t port);
+    bool Turn(const std::string& json_state, std::string* json_turn) const;
+
+private:
     size_t id_;
+    IOClient client_;
     Strategy strategy_;
 };
 
-}
+} // namespace ab
