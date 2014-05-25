@@ -11,7 +11,7 @@ namespace ab {
 
 ConnectionId MessageManager::AddConnection(std::weak_ptr<mio::Connection> connection) {
     connections_.push_back(connection);
-    return connections_.size();
+    return connections_.size() - 1;
 }
 
 std::weak_ptr<mio::Connection> MessageManager::GetConnection(ConnectionId connection) {

@@ -117,10 +117,10 @@ public:
         {}
 
     virtual mio::Buffer getResponse(mio::Buffer message_body) {
-        mio::Buffer message = std::make_shared<mio::BufferVector>();
-
         char length_buffer[sizeof(int)];
-        *((int *) length_buffer) = message->size();
+        *((int *) length_buffer) = message_body->size();
+
+        mio::Buffer message = std::make_shared<mio::BufferVector>(sizeof(length_buffer));
         std::copy(length_buffer, length_buffer + sizeof(length_buffer), message->begin());
 
         message->insert(message->end(), message_body->begin(), message_body->end());

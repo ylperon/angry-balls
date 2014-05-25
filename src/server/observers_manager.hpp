@@ -12,7 +12,7 @@ private:
     std::weak_ptr<MessageManager> message_manager_;
     std::weak_ptr<GameStateManager> game_state_manager_;
 
-    void SendStateToConnections(const Message& message, 
+    void SendMessageToConnections(const Message& message, 
         const std::vector<ConnectionId>& connections);
 public:
     void SetMessageManager(std::weak_ptr<MessageManager> message_manager);
@@ -22,6 +22,7 @@ public:
     void AddViewer(ConnectionId viewer_id);
 
     void SendStateToAllObservers(const FieldState &state);
+    void SendClientConfirmation(ConnectionId client_id, bool client_added);
 };
 
 } // namespace ab

@@ -35,7 +35,9 @@ public:
     static mio::Buffer BuildJsonResponse(const Message& message) {
         auto json_string = BuildJsonMessage(&message);
 
-        return std::make_shared<mio::BufferVector>(json_string.begin(), json_string.end());
+        auto buffer = std::make_shared<mio::BufferVector>(json_string.begin(), json_string.end());
+        assert(buffer);
+        return buffer;
     }
 };
 

@@ -3,7 +3,7 @@
 
 namespace ab {
 
-void ObserversManager::SendStateToConnections(const Message& message, 
+void ObserversManager::SendMessageToConnections(const Message& message, 
         const std::vector<ConnectionId>& connections) {
     std::shared_ptr<MessageManager> mm(message_manager_.lock());
 
@@ -25,9 +25,13 @@ void ObserversManager::SetGameStateManager(std::weak_ptr<GameStateManager> game_
 void ObserversManager::AddClient(ConnectionId client_id) {
     client_ids_.push_back(client_id);      
     auto gsm = game_state_manager_.lock();
+    bool client_added = false;
+
     if (gsm) {
-       gsm->AddClient(client_id);
+       client_added = gsm->AddClient(client_id);
     } 
+
+    SendClientConfirmation(client_id, client_added);
 }
 
 void ObserversManager::AddViewer(ConnectionId viewer_id) {
@@ -38,8 +42,16 @@ void ObserversManager::SendStateToAllObservers(const FieldState &state) {
     FieldStateMessage message;
     message.field_state = state;
 
-    SendStateToConnections(message, client_ids_);
-    SendStateToConnections(message, viewer_ids_);
+    SendMessageToConnections(message, client_ids_);
+    SendMessageToConnections(message, viewer_ids_);
+}
+
+void ObserversManager::SendClientConfirmation(ConnectionId client_id, bool client_added) {
+    ClientSubscribeResultMessage message;
+    message.result = client_added;
+    message.player_id = client_id; 
+
+    SendMessageToConnections(message, {client_id});
 }
 
 } // namespace ab

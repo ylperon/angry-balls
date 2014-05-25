@@ -20,7 +20,7 @@ public:
     {}
 
     void AddTurn(const Turn& turn, ConnectionId connection_id);
-    void AddClient(ConnectionId connection_id);
+    bool AddClient(ConnectionId connection_id);
     void run();
 };
 

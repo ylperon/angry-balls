@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string.h>
 
 #include "client/gamer.h"
 #include "strategies/strategies.h"
@@ -52,26 +53,29 @@ int IOClient::SendAll(const std::string& buf, int flags) const
 int IOClient::RecvAll(std::string& buf, int flags) const
 {
     int current_recv_count = 0;
-    std::string buf_length;
-    buf_length.resize(4);
-    current_recv_count = recv(sockfd_, &buf_length, buf_length.length(), flags);
+    char buf_length[sizeof(uint32_t)];
+    current_recv_count = recv(sockfd_, buf_length, sizeof(buf_length), flags);
     if (current_recv_count == -1) {
         return -1;
     }
-    size_t length = atoi(buf_length.c_str());
-    buf.resize(length);
-    std::string current_buf;
-    current_buf.resize(1024);
+    size_t length = *(uint32_t *)buf_length;
+
+    //buf.resize(length);
+
+    char current_buf[1024];
     size_t total_recv_count = 0;
     while (total_recv_count < length) {
-        current_recv_count = recv(sockfd_, &current_buf, current_buf.length(), flags);
+        current_recv_count = recv(sockfd_, current_buf, sizeof(current_buf), flags);
         if (current_recv_count == -1) {
             return -1;
         }
+
+        buf.append(current_buf, current_recv_count);
         total_recv_count += current_recv_count;
-        buf += current_buf;
-        current_buf.clear();
+
+        memset(current_buf, 0, sizeof(current_buf));
     }
+
     return total_recv_count;
 }
 
