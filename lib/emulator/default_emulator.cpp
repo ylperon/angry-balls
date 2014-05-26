@@ -71,7 +71,7 @@ void ResolveCollision(ab::Player& lhs_player, ab::Player& rhs_player)
     lhs_player.velocity.y += collision.y * (rhs_impuls_component - lhs_impuls_component);
 
     rhs_player.velocity.x -= collision.x * (rhs_impuls_component - lhs_impuls_component);
-    lhs_player.velocity.y -= collision.y * (rhs_impuls_component - lhs_impuls_component);
+    rhs_player.velocity.y -= collision.y * (rhs_impuls_component - lhs_impuls_component);
 }
 
 void HandleBallToBallCollisions(std::vector<ab::Player>& players)
@@ -88,7 +88,7 @@ void HandleBallToBallCollisions(std::vector<ab::Player>& players)
 
 inline bool Collide(const double field_radius, const ab::Player& player)
 {
-    return Length(player.center) + player.radius <= field_radius;
+    return Length(player.center) + player.radius > field_radius;
 }
 
 /* via http://stackoverflow.com/questions/8429315/new-velocity-after-circle-collision
