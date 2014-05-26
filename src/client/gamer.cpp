@@ -76,6 +76,8 @@ int IOClient::RecvAll(std::string& buf, int flags) const
         memset(current_buf, 0, sizeof(current_buf));
     }
 
+    std::cerr << "RECV [" << buf << "]\n";
+
     return total_recv_count;
 }
 
@@ -131,8 +133,10 @@ void Gamer<Strategy>::Game(size_t port)
 
     std::string json_state;
     while (client_.RecvAll(json_state, 0) != -1) {
+        std::cerr << "STATE RECEIVED " << json_state.size() << "\n";
         std::string json_turn;
         if (Turn(json_state, &json_turn)) {
+            std::cerr << "TURN SEND " << json_turn.size() << "\n";
             int send_result = client_.SendAll(json_turn, 0);
             if (send_result == -1) {
                 std::cerr << "SendAll(json_turn) is failed\n";
@@ -141,6 +145,7 @@ void Gamer<Strategy>::Game(size_t port)
         } else {
             std::cerr << "Turn(json_state, &json_turn) is failed\n";
         }
+        json_state = std::string();
     }
 }
 
@@ -167,6 +172,9 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
     turn_message.state_id = field_state_message->field_state.id;
 
     *json_turn = BuildJsonMessage(&turn_message);
+
+    std::cerr << "TURN [" << *json_turn << "]\n";
+
     return true;
 }
 

@@ -30,6 +30,10 @@ public:
             std::weak_ptr<mio::Connection> connection);
 
     void SendMessage(const Message &message, ConnectionId connection_id);
+    
+    void SetGameStateManager(std::weak_ptr<GameStateManager> game_state_manager) {
+        game_state_manager_ = game_state_manager;
+    }
 };
 
 } // namespace ab

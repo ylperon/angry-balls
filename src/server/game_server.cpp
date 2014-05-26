@@ -94,6 +94,7 @@ public:
         game_state_manager_(std::make_shared<GameStateManager>(observers_manager_)) {
         observers_manager_->SetMessageManager(message_manager_);
         observers_manager_->SetGameStateManager(game_state_manager_);
+        message_manager_->SetGameStateManager(game_state_manager_);
     } 
 
     void run() {

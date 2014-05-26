@@ -44,7 +44,7 @@ void MessageManager::DispatchMessage(std::unique_ptr<Message > message, Connecti
 
         auto gsm = game_state_manager_.lock();
         if (gsm) {
-            gsm->AddTurn(turn_message->turn, connection_id);
+            gsm->AddTurn(turn_message->turn);
         }
     } else {
         // incorrect message type

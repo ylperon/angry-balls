@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "observers_manager.hpp"
 #include "game_state_manager.hpp"
 
@@ -11,6 +13,8 @@ void ObserversManager::SendMessageToConnections(const Message& message,
         for (auto connection: connections) {
             mm->SendMessage(message, connection);
         }
+    } else {
+        std::cerr << "mm=0\n";
     }
 }
 
@@ -28,7 +32,7 @@ void ObserversManager::AddClient(ConnectionId client_id) {
     bool client_added = false;
 
     if (gsm) {
-       client_added = gsm->AddClient(client_id);
+       client_added = gsm->AddPlayer(client_id);
     } 
 
     SendClientConfirmation(client_id, client_added);
