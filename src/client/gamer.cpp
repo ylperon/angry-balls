@@ -1,5 +1,8 @@
 #include <iostream>
-#include <string.h>
+#include <string>
+
+#include <cstring>
+#include <cstdlib>
 
 #include "client/gamer.h"
 #include "strategies/strategies.h"
@@ -161,7 +164,7 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
         std::cerr << "Bad message type: " + ToString(message->type) + '\n';
         return false;
     }
-    
+
     std::unique_ptr<FieldStateMessage> field_state_message
                                             (dynamic_cast<FieldStateMessage*>(message.release()));
 
@@ -180,7 +183,60 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
 
 } // namespace ab
 
-int main() {
-    ab::Gamer<ab::DoNothingStrategy> gamer;
-    gamer.Game(ab::PORT);
+enum StrategyType : int
+{
+    kDoNothinStrategy,
+    kMoveToClosestStrategy,
+    kPredictiveStrategy
+};
+
+struct Options
+{
+    size_t port;
+    StrategyType strategy;
+};
+
+Options ParseOptions(int argc, char** argv)
+{
+    const std::string usage_message
+        = std::string(argv[0]) + " --port <port> --strategy <strategy>\n"
+          + "Where <strategy> is in {do-nothing, move-to-closest, predictive}";
+
+    if (5 != argc || std::string("--port") != argv[1] || std::string("--strategy") != argv[3]) {
+        std::cerr << usage_message << std::endl;
+        std::exit(1);
+    }
+
+    Options options;
+    options.port = atoi(argv[2]);
+
+    if (std::string("do-nothing") == argv[4])
+        options.strategy = kDoNothinStrategy;
+    else if (std::string("move-to-closest") == argv[4])
+        options.strategy = kMoveToClosestStrategy;
+    else if (std::string("predictive") == argv[4])
+        options.strategy = kPredictiveStrategy;
+    else {
+        std::cerr << usage_message << std::endl;
+        std::exit(1);
+    }
+
+    return options;
+}
+
+int main(int argc, char** argv)
+{
+    const Options options = ParseOptions(argc, argv);
+    switch (options.strategy) {
+        case kDoNothinStrategy: {
+            ab::Gamer<ab::DoNothingStrategy> gamer;
+            gamer.Game(options.port);
+        } case kMoveToClosestStrategy: {
+            ab::Gamer<ab::MoveToClosestStrategy> gamer;
+            gamer.Game(options.port);
+        } case kPredictiveStrategy: {
+            ab::Gamer<ab::PredictiveStrategy> gamer;
+            gamer.Game(options.port);
+        }
+    }
 }
