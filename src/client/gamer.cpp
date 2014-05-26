@@ -134,10 +134,9 @@ void Gamer<Strategy>::Game(size_t port)
 
     std::string json_state;
     while (client_.RecvAll(json_state, 0) != -1) {
-        std::cerr << "STATE RECEIVED " << json_state.size() << "\n";
+        std::cerr << json_state << std::endl;
         std::string json_turn;
         if (Turn(json_state, &json_turn)) {
-            std::cerr << "TURN SEND " << json_turn.size() << "\n";
             int send_result = client_.SendAll(json_turn, 0);
             if (send_result == -1) {
                 std::cerr << "SendAll(json_turn) is failed\n";

@@ -98,7 +98,7 @@ public:
     GameServer(GameConfig config) :
         observers_manager_(std::make_shared<ObserversManager>()),
         message_manager_(std::make_shared<MessageManager>(observers_manager_)),
-        game_io_server_(message_manager_, mio::ServerConfig(ab::PORT)) {
+        game_io_server_(message_manager_, mio::ServerConfig(config.port)) {
 
         game_state_manager_ = std::make_shared<GameStateManager>
                 (GameStateManager::Init<ab::DefaultPlayerGenerator,
@@ -121,10 +121,55 @@ public:
     }
 };
 
+GameConfig ParseGameConfigOptions(int argc, char** argv)
+{
+    const std::string usage_message
+        = std::string(argv[0]) + "--max-players-count <players_count> "\
+                                 "--max-states-count <max_states_count> "\
+                                 "--time-delta <time_delta (in milliseconds)> "\
+                                 "--coin-probability <double in range (0.0, 1.0)> "\
+                                 "--player-radius <player radius> "\
+                                 "--field-radius <field radius> "\
+                                 "--coin-radius <coin radius> "\
+                                 "--port <port> "\
+                                 "\n";
+
+    if (17 != argc || 
+            std::string("--max-players-count") != argv[1] || 
+            std::string("--max-states-count")  != argv[3] ||
+            std::string("--time-delta")        != argv[5] ||
+            std::string("--coin-probability")  != argv[7] ||
+            std::string("--player-radius")     != argv[9] ||
+            std::string("--field-radius")      != argv[11] ||
+            std::string("--coin-radius")       != argv[13] ||
+            std::string("--port")              != argv[15]
+            ) {
+        std::cerr << usage_message << std::endl;
+        std::exit(1);
+    }
+
+    GameConfig config;
+    config.max_players_count = atoi(argv[2]);
+    config.max_states_count = atoi(argv[4]);
+    config.time_delta = atoi(argv[6]);
+    config.coin_probability = atof(argv[8]);
+    config.player_radius = atof(argv[10]);
+    config.field_radius = atof(argv[12]);
+    config.coin_radius = atof(argv[14]);
+    config.port = atoi(argv[16]);
+
+    if (!config.Check()) {
+        std::cerr << usage_message << std::endl;
+        std::exit(1);
+    }
+ 
+    return config;
+}
+
 } // namespace ab
 
-int main() {
-    ab::GameConfig config = ab::GameConfig { 100, 100, 2, 0.02, 1, 100, 1};
+int main(int argc, char **argv) {
+    ab::GameConfig config = ab::ParseGameConfigOptions(argc, argv);
     ab::GameServer game_server(config);
     game_server.Run();
 }

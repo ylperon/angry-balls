@@ -40,8 +40,9 @@ private:
         observers_manager_(observers_manager),
         player_generator_(player_generator),
         coin_generator_(coin_generator),
-        emulator_(emulator)
-        {}
+        emulator_(emulator) {
+        state_.radius = config_.field_radius;
+    }
 
 public:
     GameStateManager(const GameStateManager &other) :

@@ -72,7 +72,7 @@ void GameStateManager::Run() {
 
 void GameStateManager::GenerateCoin() {
     std::uniform_real_distribution<double> radius_distribution(0, 1);
-    if (radius_distribution(random_generator_) < config_.coin_generate_probability) {
+    if (radius_distribution(random_generator_) < config_.coin_probability) {
         auto new_coin = coin_generator_->GetCoin(config_.field_radius, config_.coin_radius);
         state_.coins.push_back(new_coin);
     }
