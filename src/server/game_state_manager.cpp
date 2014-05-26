@@ -40,6 +40,19 @@ void GameStateManager::FilterTurns() {
 }
 
 void GameStateManager::Run() {
+    std::cerr << "Waiting for " << config_.min_players_count << " players to connect...\n";
+    while (true) {
+        {
+            std::unique_lock<std::mutex>(mutex_);
+            if (state_.players.size() >= config_.min_players_count) {
+                break;
+            }
+        } 
+        std::this_thread::sleep_for(std::chrono::milliseconds(config_.time_delta));
+    } 
+
+    state_.id = 0;
+    std::cerr << "Start game! Will run " << config_.max_states_count << " steps\n";
     while (state_.id < config_.max_states_count) {
         ++state_.id;
         {
@@ -62,6 +75,7 @@ void GameStateManager::Run() {
         }
     }
 
+    std::cerr << "Finish game!\n";
     auto om = observers_manager_.lock();
     if (om) {
         om->SendFinishToAllObservers();

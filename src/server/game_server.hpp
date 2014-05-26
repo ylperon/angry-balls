@@ -9,6 +9,7 @@ class MessageManager;
 class GameStateManager;
 
 struct GameConfig {
+    int min_players_count;
     int max_players_count;
     int max_states_count;
     int time_delta;
@@ -19,7 +20,8 @@ struct GameConfig {
     int port;
 
     bool Check() {
-        return ((0 < max_players_count && max_players_count < 1000) &&
+        return ((0 < min_players_count && min_players_count < 1000) &&
+           (min_players_count < max_states_count && max_players_count < 1000) &&
            (0 < max_states_count && max_states_count < 1000000000)  &&
            (0 < time_delta && time_delta < 60 * 1000) &&
            (0.0 < coin_probability && coin_probability < 1.0) &&
