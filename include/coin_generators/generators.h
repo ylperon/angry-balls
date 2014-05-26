@@ -15,10 +15,6 @@ public:
 class DefaultCoinGenerator : public CoinGeneratorInterface
 {
 public:
-    DefaultCoinGenerator() :
-        generator_(237)
-        {}
-
     Coin GetCoin(const double field_radius, const double coin_radius) override;
 
     virtual ~DefaultCoinGenerator();
