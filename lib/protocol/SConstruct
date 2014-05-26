@@ -1,5 +1,5 @@
 cpp_path = ['../../../include/', '../../../contrib/jsoncpp/include/']
-cpp_flags = ['-g', '-Wall', '-std=c++11']
+cpp_flags = ['-g', '-Wall', '-std=c++11', '-stdlib=libc++', '-pthread']
 compiler = 'clang++'
 
 env = Environment(
