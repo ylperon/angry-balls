@@ -1,0 +1,6 @@
+Import('env')
+
+cpp_files = ['gamer.cpp']
+env.Program('gamer', cpp_files, 
+        LIBS = ['libprotocol.a', 'libstrategies.a'], 
+        LIBPATH = ['../../../lib/protocol/build-scons', '../../strategies/build-scons'])
