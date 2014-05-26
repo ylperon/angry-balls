@@ -10,6 +10,7 @@ class GameStateManager;
 
 struct GameConfig {
     int max_players_count;
+    int max_states_count;
     int time_delta;
     double coin_generate_probability;
     double player_radius;

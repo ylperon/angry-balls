@@ -22,7 +22,10 @@ public:
     void AddViewer(ConnectionId viewer_id);
 
     void SendStateToAllObservers(const FieldState &state);
+    void SendFinishToAllObservers();
+
     void SendClientConfirmation(ConnectionId client_id, PlayerId player_id, bool client_added);
+    void SendViewerConfirmation(ConnectionId client_id, ViewerId viewer_id);
 };
 
 } // namespace ab

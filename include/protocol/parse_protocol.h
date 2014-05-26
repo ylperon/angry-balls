@@ -77,7 +77,7 @@ struct TurnMessage : Message
 
 struct FinishMessage : Message
 {
-    FinishMessage() { type = kFieldStateMessage; }
+    FinishMessage() { type = kFinishMessage; }
     virtual ~FinishMessage() {}
 };
 

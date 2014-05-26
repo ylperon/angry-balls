@@ -33,8 +33,14 @@ bool GameStateManager::AddPlayer(PlayerId *id) {
     return true;
 }
 
+void GameStateManager::FilterTurns() {
+    std::replace_if(turns_.begin(), turns_.end(), 
+            [=](const Turn &turn) { return turn.state_id != state_.id - 1; },
+            Turn());
+}
+
 void GameStateManager::Run() {
-    while(true) {
+    while (state_.id < config_.max_states_count) {
         ++state_.id;
         {
             std::unique_lock<std::mutex>(mutex_);
@@ -43,17 +49,24 @@ void GameStateManager::Run() {
             auto om = observers_manager_.lock();
             if (om) {
                 om->SendStateToAllObservers(state_);
-            } 
+            } else {
+                return;
+            }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(config_.time_delta));
         {
             std::unique_lock<std::mutex>(mutex_);
-            std::replace_if(turns_.begin(), turns_.end(), 
-                    [=](const Turn &turn) { return turn.state_id != state_.id - 1; },
-                    Turn());
 
+            FilterTurns(); 
             emulator_->Emulate(turns_, state_);
         }
+    }
+
+    auto om = observers_manager_.lock();
+    if (om) {
+        om->SendFinishToAllObservers();
+    } else {
+        return;
     }
 }
 

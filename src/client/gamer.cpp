@@ -76,8 +76,6 @@ int IOClient::RecvAll(std::string& buf, int flags) const
         memset(current_buf, 0, sizeof(current_buf));
     }
 
-    std::cerr << "RECV [" << buf << "]\n";
-
     return total_recv_count;
 }
 
@@ -172,8 +170,6 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
     turn_message.state_id = field_state_message->field_state.id;
 
     *json_turn = BuildJsonMessage(&turn_message);
-
-    std::cerr << "TURN [" << *json_turn << "]\n";
 
     return true;
 }

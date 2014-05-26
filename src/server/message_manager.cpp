@@ -48,7 +48,6 @@ void MessageManager::DispatchMessage(std::unique_ptr<Message > message, Connecti
         }
     } else {
         // incorrect message type
-        // ???
         std::cerr << "Incorrect message\n"; 
     }
 }

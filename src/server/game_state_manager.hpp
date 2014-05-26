@@ -66,6 +66,7 @@ public:
     }
 
     void AddTurn(const Turn& turn);
+    void FilterTurns();
     bool AddPlayer(PlayerId *id);
     void Run();
 };

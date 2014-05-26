@@ -24,20 +24,23 @@ void ObserversManager::SetGameStateManager(std::weak_ptr<GameStateManager> game_
     game_state_manager_ = game_state_manager;
 }
 
-void ObserversManager::AddClient(ConnectionId client_id) {
-    client_ids_.push_back(client_id);      
+void ObserversManager::AddClient(ConnectionId client_connection_id) {
+    client_ids_.push_back(client_connection_id);      
     auto gsm = game_state_manager_.lock();
     bool client_added = false;
     
     PlayerId player_id;
     if (gsm) {
-       client_added = gsm->AddPlayer(&player_id);
-        SendClientConfirmation(client_id, player_id, client_added);
+        client_added = gsm->AddPlayer(&player_id);
+        SendClientConfirmation(client_connection_id, player_id, client_added);
     } 
 }
 
-void ObserversManager::AddViewer(ConnectionId viewer_id) {
-    viewer_ids_.push_back(viewer_id);
+void ObserversManager::AddViewer(ConnectionId viewer_connection_id) {
+    viewer_ids_.push_back(viewer_connection_id);
+    
+    ViewerId id = viewer_ids_.size() - 1;
+    SendViewerConfirmation(viewer_connection_id, id);
 }
 
 void ObserversManager::SendStateToAllObservers(const FieldState &state) {
@@ -48,14 +51,29 @@ void ObserversManager::SendStateToAllObservers(const FieldState &state) {
     SendMessageToConnections(message, viewer_ids_);
 }
 
-void ObserversManager::SendClientConfirmation(ConnectionId client_id, 
+void ObserversManager::SendFinishToAllObservers() {
+    FinishMessage message;
+
+    SendMessageToConnections(message, client_ids_);
+    SendMessageToConnections(message, viewer_ids_);
+}
+
+void ObserversManager::SendClientConfirmation(ConnectionId client_connection_id, 
         PlayerId player_id, 
         bool client_added) {
     ClientSubscribeResultMessage message;
     message.result = client_added;
     message.player_id = player_id; 
 
-    SendMessageToConnections(message, {client_id});
+    SendMessageToConnections(message, {client_connection_id});
 }
 
+void ObserversManager::SendViewerConfirmation(ConnectionId viewer_connection_id, 
+        ViewerId viewer_id) {
+    ViewerSubscribeResultMessage message;
+    message.result = true;
+    message.viewer_id = viewer_id; 
+
+    SendMessageToConnections(message, {viewer_connection_id});
+}
 } // namespace ab

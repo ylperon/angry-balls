@@ -78,9 +78,13 @@ public:
         addServerConnection(message_manager, config);
     }
 
-    void run() {
+    void Run() {
         io_server_->eventLoop();
     } 
+
+    void Stop() {
+        io_server_->stop();
+    }
 };
 
 class GameServer {
@@ -106,9 +110,13 @@ public:
         message_manager_->SetGameStateManager(game_state_manager_);
     } 
 
-    void run() {
-        std::thread state_manager_thread([&]() { game_state_manager_->Run(); });
-        game_io_server_.run();
+    void Run() {
+        std::thread state_manager_thread([&]() {
+            game_state_manager_->Run();
+            game_io_server_.Stop();
+        });
+
+        game_io_server_.Run();
         state_manager_thread.join();
     }
 };
@@ -116,7 +124,7 @@ public:
 } // namespace ab
 
 int main() {
-    ab::GameConfig config = ab::GameConfig { 100, 100, 0.02, 1, 100, 1};
+    ab::GameConfig config = ab::GameConfig { 100, 100, 2, 0.02, 1, 100, 1};
     ab::GameServer game_server(config);
-    game_server.run();
+    game_server.Run();
 }
