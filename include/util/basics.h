@@ -4,13 +4,15 @@
 
 namespace ab {
 
-static const int PORT = 8992;
+static constexpr int PORT = 8992;
 
 struct Point
 {
     double x;
     double y;
 };
+
+struct Vector : Point {};
 
 struct Velocity : Point {};
 

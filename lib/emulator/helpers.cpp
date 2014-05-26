@@ -69,6 +69,7 @@ void ab::ApplyAcceleration(const std::vector<ab::Turn>& turns,
     for (size_t index = 0; index < acceleratons.size(); ++index) {
         players[index].velocity.x += acceleratons[index].x * time_delta;
         players[index].velocity.y += acceleratons[index].y * time_delta;
-        Normalize(&players[index].velocity);
+        if (Length(players[index].velocity) > 1.0)
+            Normalize(&players[index].velocity);
     }
 }
