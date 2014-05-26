@@ -4,10 +4,13 @@ cpp_files = ['gamer.cpp']
 env.Program('gamer', 
             cpp_files, 
             LIBS = ['libprotocol.a',
-                    'libstrategies.a', 
-                    'c++'
+                    'libstrategies.a',
+                    'libutil.a',
+                    'c++',
+                    'pthread'
                    ], 
             LIBPATH = ['../../../lib/protocol/build-scons',
+                       '../../../lib/util/build-scons',
                        '../../../src/strategies/build-scons'
                       ]
            )
