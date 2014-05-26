@@ -40,8 +40,7 @@ private:
         observers_manager_(observers_manager),
         player_generator_(player_generator),
         coin_generator_(coin_generator),
-        emulator_(emulator),
-        random_generator_(239)
+        emulator_(emulator)
         {}
 
 public:
@@ -52,8 +51,7 @@ public:
         turns_(other.turns_),
         player_generator_(other.player_generator_),
         coin_generator_(other.coin_generator_),
-        emulator_(other.emulator_),
-        random_generator_(239)
+        emulator_(other.emulator_)
         {}
 
     template<typename PlayerGenerator, typename CoinGenerator, typename Emulator>
@@ -68,7 +66,7 @@ public:
     }
 
     void AddTurn(const Turn& turn);
-    bool AddPlayer(ConnectionId connection_id);
+    bool AddPlayer(PlayerId *id);
     void Run();
 };
 

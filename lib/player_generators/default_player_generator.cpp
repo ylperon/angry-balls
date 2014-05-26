@@ -32,7 +32,6 @@ ab::Player ab::DefaultPlayerGenerator::GetPlayer(const double field_radius,
     std::uniform_real_distribution<double> radius_distribution(0, max_radius);
     std::uniform_real_distribution<double> alpha_distribution(0, pi() * 2.0);
 
-    ++last_player_id_;
     ab::Player new_player;
     new_player.id = last_player_id_;
     new_player.score = 0;
@@ -56,6 +55,7 @@ ab::Player ab::DefaultPlayerGenerator::GetPlayer(const double field_radius,
         if (new_player_found)
             break;
     }
+    ++last_player_id_;
 
     return new_player;
 }

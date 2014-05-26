@@ -116,7 +116,7 @@ public:
 } // namespace ab
 
 int main() {
-    ab::GameConfig config = ab::GameConfig { 100, 100, 0.001, 1, 100, 1};
+    ab::GameConfig config = ab::GameConfig { 100, 100, 0.02, 1, 100, 1};
     ab::GameServer game_server(config);
     game_server.run();
 }
