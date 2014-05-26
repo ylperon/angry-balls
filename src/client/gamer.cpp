@@ -132,20 +132,22 @@ void Gamer<Strategy>::Game(size_t port)
     if (!ConnectionToServer(port))
         return;
 
-    std::string json_state;
-    while (client_.RecvAll(json_state, 0) != -1) {
-        std::cerr << json_state << std::endl;
+    std::string json_message;
+    while (client_.RecvAll(json_message, 0) != -1) {
+        std::cerr << json_message << std::endl;
         std::string json_turn;
-        if (Turn(json_state, &json_turn)) {
+        if (Turn(json_message, &json_turn)) {
             int send_result = client_.SendAll(json_turn, 0);
             if (send_result == -1) {
                 std::cerr << "SendAll(json_turn) is failed\n";
                 continue;
             }
+        } else if (Finish(json_message)) {
+            return;
         } else {
-            std::cerr << "Turn(json_state, &json_turn) is failed\n";
+            std::cerr << "Bad message received " << json_message << std::endl;
         }
-        json_state = std::string();
+        json_message = std::string();
     }
 }
 
@@ -158,7 +160,6 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
         return false;
     }
     if (message->type != MessageType::kFieldStateMessage) {
-        std::cerr << "Bad message type: " + ToString(message->type) + '\n';
         return false;
     }
 
@@ -173,6 +174,21 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
 
     *json_turn = BuildJsonMessage(&turn_message);
 
+    return true;
+}
+
+template <class Strategy>
+bool Gamer<Strategy>::Finish(const std::string& json_state)
+{
+    std::unique_ptr<Message> message = ParseJsonMessage(json_state);
+    if (!message) {
+        std::cerr << "Unsuccessful message parse\n";
+        return false;
+    }
+    if (message->type != MessageType::kFinishMessage) {
+        std::cerr << "Bad message type: " + ToString(message->type) + '\n';
+    }
+    std::cerr << "Finish game\n";
     return true;
 }
 
@@ -226,12 +242,15 @@ int main(int argc, char** argv)
         case kDoNothinStrategy: {
             ab::Gamer<ab::DoNothingStrategy> gamer;
             gamer.Game(options.port);
+            break;
         } case kMoveToClosestStrategy: {
             ab::Gamer<ab::MoveToClosestStrategy> gamer;
             gamer.Game(options.port);
+            break;
         } case kPredictiveStrategy: {
             ab::Gamer<ab::PredictiveStrategy> gamer;
             gamer.Game(options.port);
+            break;
         }
     }
 }

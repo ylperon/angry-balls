@@ -128,6 +128,7 @@ GameConfig ParseGameConfigOptions(int argc, char** argv)
                                  "--max-players-count <max players count> "\
                                  "--max-states-count <max states count> "\
                                  "--time-delta <time delta (in milliseconds)> "\
+                                 "--max-velocity <max velocity in range (0.0, 1.0)> "\
                                  "--coin-probability <double in range (0.0, 1.0)> "\
                                  "--player-radius <player radius> "\
                                  "--field-radius <field radius> "\
@@ -135,16 +136,17 @@ GameConfig ParseGameConfigOptions(int argc, char** argv)
                                  "--port <port> "\
                                  "\n";
 
-    if (19 != argc || 
+    if (21 != argc || 
             std::string("--min-players-count") != argv[1] || 
             std::string("--max-players-count") != argv[3] || 
             std::string("--max-states-count")  != argv[5] ||
             std::string("--time-delta")        != argv[7] ||
-            std::string("--coin-probability")  != argv[9] ||
-            std::string("--player-radius")     != argv[11] ||
-            std::string("--field-radius")      != argv[13] ||
-            std::string("--coin-radius")       != argv[15] ||
-            std::string("--port")              != argv[17]
+            std::string("--max-velocity")      != argv[9] ||
+            std::string("--coin-probability")  != argv[11] ||
+            std::string("--player-radius")     != argv[13] ||
+            std::string("--field-radius")      != argv[15] ||
+            std::string("--coin-radius")       != argv[17] ||
+            std::string("--port")              != argv[19]
             ) {
         std::cerr << usage_message << std::endl;
         std::exit(1);
@@ -155,11 +157,12 @@ GameConfig ParseGameConfigOptions(int argc, char** argv)
     config.max_players_count = atoi(argv[4]);
     config.max_states_count = atoi(argv[6]);
     config.time_delta = atoi(argv[8]);
-    config.coin_probability = atof(argv[10]);
-    config.player_radius = atof(argv[12]);
-    config.field_radius = atof(argv[14]);
-    config.coin_radius = atof(argv[16]);
-    config.port = atoi(argv[18]);
+    config.max_velocity = atof(argv[10]);
+    config.coin_probability = atof(argv[12]);
+    config.player_radius = atof(argv[14]);
+    config.field_radius = atof(argv[16]);
+    config.coin_radius = atof(argv[18]);
+    config.port = atoi(argv[20]);
 
     if (!config.Check()) {
         std::cerr << usage_message << std::endl;

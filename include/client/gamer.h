@@ -39,6 +39,7 @@ public:
 private:
     bool ConnectionToServer(size_t port);
     bool Turn(const std::string& json_state, std::string* json_turn);
+    bool Finish(const std::string& json_state);
 
 private:
     size_t id_;

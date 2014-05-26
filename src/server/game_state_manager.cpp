@@ -53,6 +53,7 @@ void GameStateManager::Run() {
 
     state_.id = 0;
     std::cerr << "Start game! Will run " << config_.max_states_count << " steps\n";
+
     while (state_.id < config_.max_states_count) {
         ++state_.id;
         {
@@ -84,9 +85,9 @@ void GameStateManager::Run() {
     }
 }
 
-void GameStateManager::GenerateCoin() {
+void GameStateManager::GenerateCoin(bool obligatory) {
     std::uniform_real_distribution<double> radius_distribution(0, 1);
-    if (radius_distribution(random_generator_) < config_.coin_probability) {
+    if (obligatory || (radius_distribution(random_generator_) < config_.coin_probability)) {
         auto new_coin = coin_generator_->GetCoin(config_.field_radius, config_.coin_radius);
         state_.coins.push_back(new_coin);
     }

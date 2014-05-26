@@ -29,7 +29,7 @@ private:
     std::shared_ptr<EmulatorInterface> emulator_;
     std::mt19937 random_generator_;
 
-    void GenerateCoin();
+    void GenerateCoin(bool obligatory = false);
     
     GameStateManager(GameConfig config,
             std::weak_ptr<ObserversManager> observers_manager,
@@ -41,7 +41,11 @@ private:
         player_generator_(player_generator),
         coin_generator_(coin_generator),
         emulator_(emulator) {
+
+        state_.time_delta = config_.time_delta;
+        state_.velocity_max = config_.max_velocity;
         state_.radius = config_.field_radius;
+        GenerateCoin(true);
     }
 
 public:

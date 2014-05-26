@@ -110,8 +110,14 @@ ErrorValue ViewerClient::get_next_field_state(bool& should_continue) {
   if (!msg) {
     return ErrorValue::error("Unsuccessful parse");
   }
-  if (msg->type != ab::MessageType::kFieldStateMessage) {
+  if (!((msg->type == ab::MessageType::kFieldStateMessage) || 
+        (msg->type == ab::MessageType::kFinishMessage)))  {
     return ErrorValue::error("Bad message type: " + ab::ToString(msg->type));
+  }
+  if (msg->type == ab::MessageType::kFinishMessage) {
+    cerr << "Finish game\n";
+    return ErrorValue::ok();
+    should_continue = false;
   }
   unique_ptr<ab::FieldStateMessage> resp_msg(dynamic_cast<ab::FieldStateMessage*>(msg.release()));
   
