@@ -198,7 +198,8 @@ enum StrategyType : int
 {
     kDoNothinStrategy,
     kMoveToClosestStrategy,
-    kPredictiveStrategy
+    kPredictiveStrategy,
+    kDrunkStrategy
 };
 
 struct Options
@@ -211,7 +212,7 @@ Options ParseOptions(int argc, char** argv)
 {
     const std::string usage_message
         = std::string(argv[0]) + " --port <port> --strategy <strategy>\n"
-          + "Where <strategy> is in {do-nothing, move-to-closest, predictive}";
+          + "Where <strategy> is in {do-nothing, move-to-closest, predictive, drunk}";
 
     if (5 != argc || std::string("--port") != argv[1] || std::string("--strategy") != argv[3]) {
         std::cerr << usage_message << std::endl;
@@ -227,6 +228,8 @@ Options ParseOptions(int argc, char** argv)
         options.strategy = kMoveToClosestStrategy;
     else if (std::string("predictive") == argv[4])
         options.strategy = kPredictiveStrategy;
+    else if (std::string("drunk") == argv[4])
+        options.strategy = kDrunkStrategy;
     else {
         std::cerr << usage_message << std::endl;
         std::exit(1);
@@ -249,6 +252,10 @@ int main(int argc, char** argv)
             break;
         } case kPredictiveStrategy: {
             ab::Gamer<ab::PredictiveStrategy> gamer;
+            gamer.Game(options.port);
+            break;
+        } case kDrunkStrategy: {
+            ab::Gamer<ab::DrunkStrategy> gamer;
             gamer.Game(options.port);
             break;
         }

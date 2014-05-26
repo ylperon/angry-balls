@@ -49,6 +49,7 @@ function drawGameState() {
     ctx.beginPath();
     ctx.arc(centerX, centerY, cx * gameState.field_radius, 0, 2 * Math.PI, false);
     ctx.stroke();
+    if (gameState.coins) {
     for (var i = 0; i < gameState.coins.length; ++i) {
         var coin = gameState.coins[i];
         ctx.fillStyle = "rgb(250,230,100)";
@@ -64,6 +65,8 @@ function drawGameState() {
         ctx.font = "20px sans-serif bold";
         ctx.fillText('$', centerX + coin.x * cx, centerY + coin.y * cx);
     }
+    }
+    if (gameState.players) {
     for (var i = 0; i < gameState.players.length; ++i) {
         var player = gameState.players[i];
         ctx.fillStyle = "rgb(250,50,100)";
@@ -78,6 +81,7 @@ function drawGameState() {
         ctx.textBaseline = "middle";
         ctx.font = "20px sans-serif";
         ctx.fillText(player.id.toString(), centerX + player.x * cx, centerY + player.y * cx);
+    }
     }
 }
 

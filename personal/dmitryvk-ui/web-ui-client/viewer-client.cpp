@@ -116,8 +116,8 @@ ErrorValue ViewerClient::get_next_field_state(bool& should_continue) {
   }
   if (msg->type == ab::MessageType::kFinishMessage) {
     cerr << "Finish game\n";
-    return ErrorValue::ok();
     should_continue = false;
+    return ErrorValue::ok();
   }
   unique_ptr<ab::FieldStateMessage> resp_msg(dynamic_cast<ab::FieldStateMessage*>(msg.release()));
   

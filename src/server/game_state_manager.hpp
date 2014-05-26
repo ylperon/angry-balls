@@ -45,7 +45,7 @@ private:
         state_.time_delta = config_.time_delta;
         state_.velocity_max = config_.max_velocity;
         state_.radius = config_.field_radius;
-        GenerateCoin(true);
+        //GenerateCoin(true);
     }
 
 public:

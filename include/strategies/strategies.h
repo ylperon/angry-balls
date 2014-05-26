@@ -28,4 +28,17 @@ public:
     virtual ~PredictiveStrategy() {}
 };
 
+class DrunkStrategy : public StrategyInterface
+{
+public:
+    DrunkStrategy();
+
+    Acceleration GetTurn(const FieldState& state, const PlayerId player_id) override;
+
+    virtual ~DrunkStrategy() {}
+
+private:
+    size_t turn_index_;
+};
+
 } // namespace ab
