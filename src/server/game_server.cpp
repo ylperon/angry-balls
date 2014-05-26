@@ -6,6 +6,10 @@
 #include "mio/server_connection.hpp"
 #include "mio/connection_manager.hpp"
 
+#include "player_generators/generators.h"
+#include "coin_generators/generators.h"
+#include "emulator/emulators.h"
+
 #include "protocol.hpp"
 #include "observers_manager.hpp"
 #include "json_message.hpp"
@@ -87,18 +91,23 @@ private:
     std::shared_ptr<GameStateManager> game_state_manager_;
 
 public:
-    GameServer() :
+    GameServer(GameConfig config) :
         observers_manager_(std::make_shared<ObserversManager>()),
         message_manager_(std::make_shared<MessageManager>(observers_manager_)),
-        game_io_server_(message_manager_, mio::ServerConfig(ab::PORT)),
-        game_state_manager_(std::make_shared<GameStateManager>(observers_manager_)) {
+        game_io_server_(message_manager_, mio::ServerConfig(ab::PORT)) {
+
+        game_state_manager_ = std::make_shared<GameStateManager>
+                (GameStateManager::Init<ab::DefaultPlayerGenerator,
+                                        ab::DefaultCoinGenerator,
+                                        ab::DefaultEmulator>(config, observers_manager_));
+
         observers_manager_->SetMessageManager(message_manager_);
         observers_manager_->SetGameStateManager(game_state_manager_);
         message_manager_->SetGameStateManager(game_state_manager_);
     } 
 
     void run() {
-        std::thread state_manager_thread([&]() { game_state_manager_->run(); });
+        std::thread state_manager_thread([&]() { game_state_manager_->Run(); });
         game_io_server_.run();
         state_manager_thread.join();
     }
@@ -107,6 +116,7 @@ public:
 } // namespace ab
 
 int main() {
-    ab::GameServer game_server;
+    ab::GameConfig config = ab::GameConfig { 100, 100, 0.001, 1, 100, 1};
+    ab::GameServer game_server(config);
     game_server.run();
 }

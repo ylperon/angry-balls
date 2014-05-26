@@ -6,6 +6,19 @@ cpp_files = ['game_server.cpp',
              'game_state_manager.cpp'
             ]
 server_bin = env.Program(cpp_files, 
-                         LIBS = ['pthread', 'libprotocol.a', 'c++'],
-                         LIBPATH = ['../../../lib/protocol/build-scons/'],
+                         LIBS = ['pthread', 
+                                 'libprotocol.a',
+                                 'libcoin_generators.a',
+                                 'libplayer_generators.a', 
+                                 'libemulator.a',
+                                 'libutil.a',
+                                 'asan',
+                                 'tsan',
+                                 'c++'],
+                         LIBPATH = ['../../../lib/protocol/build-scons/',
+                                    '../../../lib/coin_generators/build-scons',
+                                    '../../../lib/player_generators/build-scons',
+                                    '../../../lib/emulator/build-scons',
+                                    '../../../lib/util/build-scons'],
+                        LINKFLAGS = ['-pie']
                         )
