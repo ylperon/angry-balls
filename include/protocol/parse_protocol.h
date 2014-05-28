@@ -69,7 +69,6 @@ struct FieldStateMessage : Message
 struct TurnMessage : Message
 {
     Turn turn;
-    FieldStateId state_id;
 
     TurnMessage() { type = kTurnMessage; }
     virtual ~TurnMessage() {}
