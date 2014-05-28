@@ -2,7 +2,7 @@
 
 all: ui-webserver
 
-PROJECT_ROOT=../../..
+PROJECT_ROOT=../..
 
 JSONCPP_SRC_DIR=${PROJECT_ROOT}/contrib/jsoncpp/src/lib_json
 JSONCPP_INCLUDE_DIR=${PROJECT_ROOT}/contrib/jsoncpp/include
