@@ -3,6 +3,9 @@ Import('env')
 cpp_files = ['dummy_coin_generator.cpp', 
              'default_coin_generator.cpp'
             ]
+
 coin_generators_lib = env.StaticLibrary(target = 'coin_generators',
                                         source = cpp_files
                                        )
+
+Return('coin_generators_lib')

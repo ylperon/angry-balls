@@ -1,5 +1,16 @@
-cpp_path = ['../../../include/']
-cpp_flags = ['-g', 
+import os
+
+project_root = os.path.abspath('../../')
+build_subdir = 'build-scons'
+
+
+cpp_path = ['include/',
+            'contrib/jsoncpp/include'
+           ]
+cpp_path = [os.path.join(project_root, x) for x in cpp_path]
+
+
+cpp_flags = ['-g',
              '-Wall',
              '-std=c++11',
              '-stdlib=libc++',
@@ -7,10 +18,47 @@ cpp_flags = ['-g',
             ]
 compiler = 'clang++'
 
-env = Environment(
-    CXX = compiler,
-    CPPFLAGS = cpp_flags,
-    CPPPATH = cpp_path
-)
 
-SConscript('SConscript', variant_dir='build-scons', exports=['env'])
+lib_path = ['lib/protocol',
+            'lib/coin_generators',
+            'lib/player_generators',
+            'lib/emulator',
+            'lib/util'
+           ]
+lib_path = [os.path.join(project_root, x) for x in lib_path]
+
+
+env = Environment(CXX = compiler,
+                  CPPFLAGS = cpp_flags,
+                  CPPPATH = cpp_path
+                 )
+
+for lib in lib_path:
+    SConscript(os.path.join(lib, 'SConscript'),
+               variant_dir = os.path.join(lib, build_subdir),
+               exports = ['env']
+              )
+
+
+libs = ['libprotocol.a',
+        'libcoin_generators.a',
+        'libplayer_generators.a',
+        'libemulator.a',
+        'libutil.a',
+        'c++',
+        'pthread'
+        ]
+
+
+# Adding build directories for debug/release cases
+lib_path = [os.path.join(x, build_subdir) for x in lib_path]
+
+
+env.Append(LIBS = libs,
+           LIBPATH = lib_path
+          )
+
+SConscript('SConscript',
+           variant_dir = build_subdir,
+           exports=['env']
+          )
