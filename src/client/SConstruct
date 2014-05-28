@@ -3,7 +3,13 @@ AddOption('--debug-build',
           action = 'store_true',
           help = 'Build in debug mode.'
          )
+AddOption('--use-asan',
+          default = False,
+          action = 'store_true',
+          help = 'Use AddressSanitizer.'
+         )
 debug_mode = GetOption('debug_build')
+use_asan = GetOption('use_asan')
 
 import os
 
@@ -25,6 +31,13 @@ if debug_mode:
     cpp_flags.append(['-g'])
 else:
     cpp_flags.append(['-O2'])
+
+if use_asan:
+    cpp_flags.append(['-fno-omit-frame-pointer',
+                      '-fno-optimize-sibling-calls',
+                      '-fsanitize=address'
+                     ]
+                    )
 compiler = 'clang++'
 
 
@@ -58,8 +71,13 @@ libs = ['libprotocol.a',
 lib_path = [os.path.join(x, build_subdir) for x in lib_path]
 
 
+linker_flags = []
+if use_asan:
+    linker_flags.append(['-fsanitize=address'])
+
 env.Append(LIBS = libs,
-           LIBPATH = lib_path
+           LIBPATH = lib_path,
+           LINKFLAGS = linker_flags
           )
 
 SConscript('SConscript',

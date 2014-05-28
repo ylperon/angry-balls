@@ -3,7 +3,13 @@ AddOption('--debug-build',
           action = 'store_true',
           help = 'Build in debug mode.'
          )
+AddOption('--use-asan',
+          default = False,
+          action = 'store_true',
+          help = 'Use AddressSanitizer.'
+         )
 debug_mode = GetOption('debug_build')
+use_asan = GetOption('use_asan')
 
 import os
 
@@ -26,6 +32,13 @@ if debug_mode:
     cpp_flags.append(['-g'])
 else:
     cpp_flags.append(['-O2'])
+
+if use_asan:
+    cpp_flags.append(['-fno-omit-frame-pointer',
+                      '-fno-optimize-sibling-calls',
+                      '-fsanitize=address'
+                     ]
+                    )
 compiler = 'clang++'
 
 
