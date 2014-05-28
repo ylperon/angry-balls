@@ -33,6 +33,12 @@ env = Environment(CXX = compiler,
                   CPPPATH = cpp_path
                  )
 
+for lib in lib_path:
+    SConscript(os.path.join(lib, 'SConscript'),
+               variant_dir = os.path.join(lib, build_subdir),
+               exports = ['env']
+              )
+
 
 libs = ['libprotocol.a',
         'libcoin_generators.a',
