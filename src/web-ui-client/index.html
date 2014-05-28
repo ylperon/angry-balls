@@ -1,0 +1,36 @@
+<!DOCTYPE html5>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style type="text/css">
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      body {
+        white-space: nowrap;
+      }
+      #controls-and-score {
+        width: 100px;
+        display: inline-block;
+        vertical-align: top;
+      }
+      #gamefield {
+        display: inline-block;
+        vertical-align: top;
+      }
+    </style>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="app.js"></script>
+  </head>
+  <body>
+    <div id="controls-and-score">
+      <button id="startButton" onclick="startUpdating()">&#x25B6;</button>
+      <button id="stopButton" onclick="stopUpdating()">&#x25A0;</button>
+      <div>Scores:</div>
+      <div id="score-board">
+      </div>
+    </div><!--
+    --><canvas id="gamefield" width="100" height="100"></canvas>
+  </body>
+</html>

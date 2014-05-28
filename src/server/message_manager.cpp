@@ -24,22 +24,18 @@ void MessageManager::ReceiveMessage(std::unique_ptr<Message> message,
     DispatchMessage(std::move(message), connection_id);
 }
 
-void MessageManager::DispatchMessage(std::unique_ptr<Message > message, ConnectionId connection_id) {
+void MessageManager::DispatchMessage(std::unique_ptr<Message> message, ConnectionId connection_id) {
     std::shared_ptr<ObserversManager> om(observers_manager_.lock());
     if (!om) {
         return;
     }
 
-    if (dynamic_cast<ClientSubscribeRequestMessage*>(message.get())) {
-        // ignore message content
+    if (message->type == kClientSubscribeRequestMessage) {
         om->AddClient(connection_id);
-
-    } else if (dynamic_cast<ViewerSubscribeRequestMessage*>(message.get())) {
-        // ignore message content
+    } else if (message->type == kViewerSubscribeRequestMessage) {
         om->AddViewer(connection_id);
-
-    } else if (dynamic_cast<TurnMessage*>(message.get())) {
-        const TurnMessage* const turn_message = dynamic_cast<TurnMessage*>(message.get());
+    } else if (message->type == kTurnMessage) {
+        const TurnMessage* const turn_message = dynamic_cast<TurnMessage*>(message.release());
         assert(nullptr != turn_message);
 
         auto gsm = game_state_manager_.lock();

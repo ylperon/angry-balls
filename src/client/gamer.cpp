@@ -170,7 +170,7 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
     turn_message.turn.player_id = id_;
     turn_message.turn.state_id = field_state_message->field_state.id;
     turn_message.turn.acceleration = strategy_.GetTurn(field_state_message->field_state, id_);
-    turn_message.state_id = field_state_message->field_state.id;
+    turn_message.turn.state_id = field_state_message->field_state.id;
 
     *json_turn = BuildJsonMessage(&turn_message);
 

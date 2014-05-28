@@ -24,6 +24,7 @@ ab::Acceleration ab::DrunkStrategy::GetTurn(const ab::FieldState& /*state*/,
             acceleration.y = -1.0;
         }
     }
+    ++turn_index_;
 
     return acceleration;
 }
