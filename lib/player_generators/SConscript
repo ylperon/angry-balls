@@ -1,4 +1,6 @@
 Import('env')
 
 cpp_files = ['default_player_generator.cpp']
-player_generators_lib = env.StaticLibrary('player_generators', cpp_files)
+player_generators_lib = env.StaticLibrary(target = 'player_generators',
+                                          source = cpp_files
+                                         )

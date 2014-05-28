@@ -1,8 +1,8 @@
 Import('env')
 
 cpp_files = ['gamer.cpp']
-env.Program('gamer', 
-            cpp_files, 
+env.Program(target = 'gamer', 
+            source = cpp_files, 
             LIBS = ['libprotocol.a',
                     'libstrategies.a',
                     'libutil.a',

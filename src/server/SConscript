@@ -5,7 +5,8 @@ cpp_files = ['game_server.cpp',
              'observers_manager.cpp',
              'game_state_manager.cpp'
             ]
-server_bin = env.Program(cpp_files, 
+server_bin = env.Program(target = 'game_server',
+                         source = cpp_files, 
                          LIBS = ['pthread', 
                                  'libprotocol.a',
                                  'libcoin_generators.a',

@@ -7,4 +7,6 @@ for filename in ['json_value.cpp', 'json_reader.cpp', 'json_writer.cpp']:
 
 cpp_files = ['parse_protocol.cpp'] + json_cpp_cpp_files
 
-protocol_lib = env.StaticLibrary('protocol', cpp_files)
+protocol_lib = env.StaticLibrary(target = 'protocol',
+                                 source = cpp_files
+                                )
