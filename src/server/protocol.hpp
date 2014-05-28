@@ -15,8 +15,6 @@ private:
         READING_LENGTH,
         READING_DATA,
     };
-    
-    static constexpr int LENGTH_SIZE = 4;
 
     struct State {
         StateType state;
@@ -24,20 +22,12 @@ private:
         size_t read_length;
         mio::Buffer buffer;
 
-        State(size_t length_size = LENGTH_SIZE) :
+        State(size_t length_size) :
             state(READING_LENGTH),
             message_length(length_size),
             read_length(0),
             buffer(std::make_shared<mio::BufferVector>(message_length))
             {}
-
-        void clear() {
-            state = READING_LENGTH;
-            message_length = LENGTH_SIZE;
-            read_length = 0;
-            buffer->clear();
-            buffer->resize(message_length);
-        }
     };
 
     std::shared_ptr<mio::RequestHandler> request_handler_;
@@ -45,9 +35,11 @@ private:
     State state_;
 
 public:
-    InputLengthPrefixedProtocol(std::shared_ptr<mio::RequestHandler> request_handler) :
+    InputLengthPrefixedProtocol(std::shared_ptr<mio::RequestHandler> request_handler,
+            size_t length_size = 4) :
         request_handler_(request_handler),
-        state_()
+        length_size_(length_size),
+        state_(length_size)
         {}
 
     virtual void processDataChunk(mio::Buffer buffer) {
@@ -107,7 +99,7 @@ public:
                         buffer_seek += remaining_length;
                         request_handler_->handleRequest(state_.buffer);
 
-                        state_.clear();
+                        state_ = State(length_size_);
                     }          
                     break;
 
