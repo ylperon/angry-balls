@@ -17,6 +17,7 @@ var gameState = null; /*{
 function updateScoreBoard() {
     var html = '';
     var players = [];
+    if (gameState.players) {
     for (var i = 0; i < gameState.players.length; ++i) {
         var player = gameState.players[i];
         players.push(player);
@@ -28,6 +29,7 @@ function updateScoreBoard() {
     for (var i = 0; i < players.length; ++i) {
         var player = players[i];
         html += '<div>' + player.id + ': ' + Math.round(player.score) + '</div>';
+    }
     }
     
     document.getElementById('score-board').innerHTML = html;
