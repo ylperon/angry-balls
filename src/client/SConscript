@@ -1,16 +1,24 @@
 Import('env')
 
+project_root = '../../../'
+
+libs = ['libprotocol.a',
+        'libstrategies.a',
+        'libutil.a',
+        'c++',
+        'pthread'
+        ]
+
+libpath = ['lib/protocol/build-scons',
+           'lib/util/build-scons',
+           'src/strategies/build-scons'
+          ]
+
+libpath = [project_root + x for x in libpath]
+
 cpp_files = ['gamer.cpp']
 env.Program(target = 'gamer', 
             source = cpp_files, 
-            LIBS = ['libprotocol.a',
-                    'libstrategies.a',
-                    'libutil.a',
-                    'c++',
-                    'pthread'
-                   ], 
-            LIBPATH = ['../../../lib/protocol/build-scons',
-                       '../../../lib/util/build-scons',
-                       '../../../src/strategies/build-scons'
-                      ]
+            LIBS = libs, 
+            LIBPATH = libpath
            )

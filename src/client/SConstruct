@@ -1,4 +1,6 @@
-cpp_path = ['../../../include/']
+project_root = '../../../'
+
+cpp_path = [project_root + 'include/']
 cpp_flags = ['-g',
              '-Wall',
              '-std=c++11',
