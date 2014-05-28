@@ -1,7 +1,14 @@
+AddOption('--debug-build',
+          default = False,
+          action = 'store_true',
+          help = 'Build in debug mode.'
+         )
+debug_mode = GetOption('debug_build')
+
 import os
 
 project_root = os.path.abspath('../../')
-build_subdir = 'build-scons'
+build_subdir = 'debug' if debug_mode else 'release'
 
 
 cpp_path = ['include'
@@ -9,12 +16,15 @@ cpp_path = ['include'
 cpp_path = [os.path.join(project_root, x) for x in cpp_path]
 
 
-cpp_flags = ['-g',
-             '-Wall',
+cpp_flags = ['-Wall',
              '-std=c++11',
              '-stdlib=libc++',
              '-pthread'
             ]
+if debug_mode:
+    cpp_flags.append(['-g'])
+else:
+    cpp_flags.append(['-O2'])
 compiler = 'clang++'
 
 
@@ -25,5 +35,5 @@ env = Environment(CXX = compiler,
 
 SConscript('SConscript',
            variant_dir = build_subdir,
-           exports = ['env']
+           exports=['env']
           )
