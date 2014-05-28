@@ -1,8 +1,14 @@
 import os
 
-project_root = '../../../'
+project_root = os.path.abspath('../../')
+build_subdir = 'build-scons'
 
-cpp_path = [project_root + 'include/']
+
+cpp_path = ['include/'
+           ]
+cpp_path = [os.path.join(project_root, x) for x in cpp_path]
+
+
 cpp_flags = ['-g',
              '-Wall',
              '-std=c++11',
@@ -11,10 +17,32 @@ cpp_flags = ['-g',
             ]
 compiler = 'clang++'
 
+
+lib_path = ['lib/protocol',
+            'lib/util',
+            'src/strategies'
+           ]
+lib_path = [os.path.join(project_root, x) for x in lib_path]
+
+
+libs = ['libprotocol.a',
+        'libstrategies.a',
+        'libutil.a',
+        'c++',
+        'pthread'
+        ]
+
+
+# Adding build directories for debug/release cases
+lib_path = [os.path.join(x, build_subdir) for x in lib_path]
+
+
 env = Environment(
     CXX = compiler,
     CPPFLAGS = cpp_flags,
-    CPPPATH = cpp_path
+    CPPPATH = cpp_path,
+    LIBS = libs,
+    LIBPATH = lib_path
 )
 
-SConscript('SConscript', variant_dir='build-scons', exports=['env'])
+SConscript('SConscript', variant_dir=build_subdir, exports=['env'])
