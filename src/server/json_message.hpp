@@ -16,7 +16,10 @@ public:
 
     // request is raw json
     void handleRequest(mio::Buffer request) {
-        auto message = ParseJsonMessage(std::string(request->data()));
+        std::string data(request->data(), request->data() + request->size());
+        data += '\0';
+        
+        std::unique_ptr<Message> message = ParseJsonMessage(data);
         auto mm = message_manager_.lock();
         auto conn = connection_.lock();
         if (mm && conn) {
@@ -35,6 +38,7 @@ public:
         auto json_string = BuildJsonMessage(&message);
 
         auto buffer = std::make_shared<mio::BufferVector>(json_string.begin(), json_string.end());
+
         assert(buffer);
         return buffer;
     }

@@ -187,7 +187,7 @@ compiler_moc_header_make_all: moc_fieldview.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_fieldview.cpp
 moc_fieldview.cpp: ipc.hpp \
-		../../../include/util/basics.h \
+		../../include/util/basics.h \
 		fieldview.hpp
 	/usr/lib/qt4/bin/moc $(DEFINES) $(INCPATH) fieldview.hpp -o moc_fieldview.cpp
 
@@ -211,12 +211,12 @@ compiler_clean: compiler_moc_header_clean
 ####### Compile
 
 main.o: main.cpp ipc.hpp \
-		../../../include/util/basics.h \
+		../../include/util/basics.h \
 		fieldview.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 client.o: client.cpp ipc.hpp \
-		../../../include/util/basics.h
+		../../include/util/basics.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o client.o client.cpp
 
 moc_fieldview.o: moc_fieldview.cpp 
