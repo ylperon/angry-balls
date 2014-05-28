@@ -35,7 +35,7 @@ bool GameStateManager::AddPlayer(PlayerId *id) {
 
 void GameStateManager::FilterTurns() {
     std::replace_if(turns_.begin(), turns_.end(), 
-            [=](const Turn &turn) { return turn.state_id != state_.id - 1; },
+            [=](const Turn &turn) { return turn.state_id != state_.id; },
             Turn());
 }
 

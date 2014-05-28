@@ -388,7 +388,7 @@ std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
 
     if (!json.isMember("state_id") || !json["state_id"].isConvertibleTo(Json::uintValue))
         return std::unique_ptr<ab::Message>();
-    message.state_id = json["state_id"].asUInt();
+    message.turn.state_id = json["state_id"].asUInt();
 
     if (!json.isMember("id") || !json["id"].isConvertibleTo(Json::uintValue))
         return std::unique_ptr<ab::Message>();
@@ -396,7 +396,7 @@ std::unique_ptr<ab::Message> ParseTurnMessage(const Json::Value& json)
 
     if (!json.isMember("a_x") || !json["a_x"].isConvertibleTo(Json::realValue))
         return std::unique_ptr<ab::Message>();
-    message.turn.acceleration.y = json["a_x"].asDouble();
+    message.turn.acceleration.x = json["a_x"].asDouble();
 
     if (!json.isMember("a_y") || !json["a_y"].isConvertibleTo(Json::realValue))
         return std::unique_ptr<ab::Message>();
