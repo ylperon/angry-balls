@@ -4,7 +4,8 @@ project_root = os.path.abspath('../../')
 build_subdir = 'build-scons'
 
 
-cpp_path = ['include/'
+cpp_path = ['include/',
+            'contrib/jsoncpp/include'
            ]
 cpp_path = [os.path.join(project_root, x) for x in cpp_path]
 
@@ -24,6 +25,17 @@ lib_path = ['lib/protocol',
            ]
 lib_path = [os.path.join(project_root, x) for x in lib_path]
 
+env = Environment(CXX = compiler,
+                  CPPFLAGS = cpp_flags,
+                  CPPPATH = cpp_path,
+                 )
+
+for lib in lib_path:
+    SConscript(os.path.join(lib, 'SConscript'),
+               variant_dir = os.path.join(lib, build_subdir),
+               exports = ['env']
+              )
+
 
 libs = ['libprotocol.a',
         'libstrategies.a',
@@ -37,12 +49,11 @@ libs = ['libprotocol.a',
 lib_path = [os.path.join(x, build_subdir) for x in lib_path]
 
 
-env = Environment(
-    CXX = compiler,
-    CPPFLAGS = cpp_flags,
-    CPPPATH = cpp_path,
-    LIBS = libs,
-    LIBPATH = lib_path
-)
+env.Append(LIBS = libs,
+           LIBPATH = lib_path
+          )
 
-SConscript('SConscript', variant_dir=build_subdir, exports=['env'])
+SConscript('SConscript',
+           variant_dir = build_subdir,
+           exports = ['env']
+          )

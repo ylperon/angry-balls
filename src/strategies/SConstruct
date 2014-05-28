@@ -1,11 +1,22 @@
-cpp_path = ['../../../include/']
-cpp_flags = ['-g', 
+import os
+
+project_root = os.path.abspath('../../')
+build_subdir = 'build-scons'
+
+
+cpp_path = ['include'
+           ]
+cpp_path = [os.path.join(project_root, x) for x in cpp_path]
+
+
+cpp_flags = ['-g',
              '-Wall',
-             '--std=c++11',
-             '--stdlib=libc++',
+             '-std=c++11',
+             '-stdlib=libc++',
              '-pthread'
             ]
 compiler = 'clang++'
+
 
 env = Environment(
     CXX = compiler,
@@ -13,4 +24,7 @@ env = Environment(
     CPPPATH = cpp_path
 )
 
-SConscript('SConscript', variant_dir='build-scons', exports=['env'])
+SConscript('SConscript',
+           variant_dir = build_subdir,
+           exports = ['env']
+          )
