@@ -1,3 +1,5 @@
+import os
+
 Import('env')
 
 project_root = '../../../'
@@ -14,7 +16,7 @@ libpath = ['lib/protocol/build-scons',
            'src/strategies/build-scons'
           ]
 
-libpath = [project_root + x for x in libpath]
+libpath = [os.path.join(project_root, x) for x in libpath]
 
 cpp_files = ['gamer.cpp']
 env.Program(target = 'gamer', 
