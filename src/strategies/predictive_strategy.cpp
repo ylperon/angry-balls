@@ -1,12 +1,15 @@
 #include "strategies/strategies.h"
+#include "util/geometry.h"
 
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 namespace {
 
 static const double kPi = acos(-1.0);
-static constexpr size_t kAngleStepNumber = 10000;
+static const double kBiggestDistance = 1E8;
+static constexpr size_t kAngleStepNumber = 100;
 
 struct BestMoveToCoin
 {
@@ -33,12 +36,12 @@ ab::Player GetNextState(const ab::FieldState& state, const ab::Player& previous_
     double velocity_previous_y = previous_state.velocity.y;
     double velocity_now_x = velocity_previous_x + acceleration.x * state.time_delta;
     double velocity_now_y = velocity_previous_y + acceleration.y * state.time_delta;
+    double squared_velocity_now = velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y;
 
-    if (velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y >
-        state.velocity_max * state.velocity_max)
+    if (squared_velocity_now > state.velocity_max * state.velocity_max)
     {
-        velocity_now_x /= sqrt(velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y);
-        velocity_now_y /= sqrt(velocity_now_x * velocity_now_x + velocity_now_y * velocity_now_y);
+        velocity_now_x /= sqrt(squared_velocity_now);
+        velocity_now_y /= sqrt(squared_velocity_now);
         velocity_now_x *= state.velocity_max;
         velocity_now_y *= state.velocity_max;
     }
@@ -59,7 +62,7 @@ ab::Player GetNextState(const ab::FieldState& state, const ab::Player& previous_
     } else {
         double left_bound = 0, right_bound = 1;
 
-        for (int iter = 0; iter < 50; ++iter) {
+        for (int iter = 0; iter < 30; ++iter) {
             double mid = (left_bound + right_bound) / 2;
             double center_mid_x = center_previous_x + velocity_now_x * mid * state.time_delta;
             double center_mid_y = center_previous_y + velocity_now_y * mid * state.time_delta;
@@ -122,7 +125,7 @@ BestMoveToCoin GetBestMove(const ab::FieldState& state, const ab::PlayerId playe
             for (size_t coin_index = 0; coin_index < state.coins.size(); ++coin_index) {
 
                 double X_cur_coin = state.coins[coin_index].center.x;
-                double Y_cur_coin = state.coins[coin_index].center.x;
+                double Y_cur_coin = state.coins[coin_index].center.y;
                 double dist_to_coin =
                     sqrt((center_now_x - X_cur_coin) * (center_now_x - X_cur_coin) +
                     (center_now_y - Y_cur_coin) * (center_now_y - Y_cur_coin));
@@ -146,9 +149,103 @@ BestMoveToCoin GetBestMove(const ab::FieldState& state, const ab::PlayerId playe
 
 } // namespace
 
+ab::Acceleration MoveToClosestCoin(const ab::FieldState& state, const ab::PlayerId player_id)
+{
+    double min_distance = kBiggestDistance;
+    size_t closest_coin_index = -1;
+
+    double center_x = state.players[player_id].center.x;
+    double center_y = state.players[player_id].center.y;
+
+    for (size_t coin_index = 0; coin_index < state.coins.size(); ++coin_index) {
+
+        double dist_to_coin = Distance(state.players[player_id].center,
+                                       state.coins[coin_index].center);
+
+        if (dist_to_coin < min_distance)
+        {
+            min_distance = dist_to_coin;
+            closest_coin_index = coin_index;
+        }
+    }
+
+    if (-1 == closest_coin_index) {
+        ab::Acceleration acceleration;
+        acceleration.x = 1;
+        acceleration.y = 0;
+        return acceleration;
+    }
+
+    const double X_closest_coin = state.coins[closest_coin_index].center.x;
+    const double Y_closest_coin = state.coins[closest_coin_index].center.y;
+
+    const double best_direction_x = X_closest_coin - center_x;
+    const double best_direction_y = Y_closest_coin - center_y;
+
+    const double best_distance_squared = 
+            best_direction_x * best_direction_x + best_direction_y * best_direction_y;
+
+    const double best_direction_x_normalized = best_direction_x / sqrt(best_distance_squared);
+    const double best_direction_y_normalized = best_direction_y / sqrt(best_distance_squared);
+
+    const double segment_start_x = center_x;
+    const double segment_start_y = center_y;
+    const double segment_end_x = center_x + kBiggestDistance * best_direction_x_normalized;
+    const double segment_end_y = center_y + kBiggestDistance * best_direction_y_normalized;
+
+    const double next_point_x = center_x + state.time_delta * state.players[player_id].velocity.x;
+    const double next_point_y = center_y + state.time_delta * state.players[player_id].velocity.y;
+
+    ab::Point next_point;
+    next_point.x = next_point_x;
+    next_point.y = next_point_y;
+
+    double left_bound = 0, right_bound = 1;
+
+    for (size_t iter = 0; iter < 100; ++iter) {
+
+        const double mid_left = (2 * left_bound + right_bound) / 3;
+        const double mid_right = (left_bound + 2 * right_bound) / 3;
+
+        ab::Point mid_left_point;
+        mid_left_point.x = segment_start_x + mid_left * (segment_end_x - segment_start_x);
+        mid_left_point.y = segment_start_y + mid_left * (segment_end_y - segment_start_y);
+
+        ab::Point mid_right_point;
+        mid_right_point.x = segment_start_x + mid_right * (segment_end_x - segment_start_x);
+        mid_right_point.y = segment_start_y + mid_right * (segment_end_y - segment_start_y);
+
+        if (Distance(next_point, mid_left_point) < Distance(next_point, mid_right_point)) {
+            right_bound = mid_right;
+        } else {
+            left_bound = mid_left;
+        }
+    }
+
+    const double projection_x = segment_start_x + left_bound * (segment_end_x - segment_start_x);
+    const double projection_y = segment_start_y + left_bound * (segment_end_y - segment_start_y);
+
+    double shift_x = projection_x - next_point_x;
+    double shift_y = projection_y - next_point_y;
+
+    double shift_absolute = sqrt(shift_x * shift_x + shift_y * shift_y);
+    if (shift_absolute < 1) {
+        shift_x += best_direction_x_normalized;
+        shift_y += best_direction_y_normalized;
+    }
+
+    shift_absolute = sqrt(shift_x * shift_x + shift_y * shift_y);
+
+    ab::Acceleration acceleration;
+    acceleration.x = shift_x / shift_absolute;
+    acceleration.y = shift_y / shift_absolute;
+    return acceleration;
+}
+
 ab::Acceleration ab::PredictiveStrategy::GetTurn(const ab::FieldState& state,
                                                     const ab::PlayerId player_id
 ){
+
     size_t players_number = state.players.size();
     std::vector<BestMoveToCoin> best_moves;
 
@@ -157,10 +254,7 @@ ab::Acceleration ab::PredictiveStrategy::GetTurn(const ab::FieldState& state,
 
     int aim_coin = best_moves[player_id].coin_id;
     if (-1 == aim_coin) {
-        ab::Acceleration acceleration;
-        acceleration.x = 0;
-        acceleration.y = 0;
-        return acceleration;
+        return MoveToClosestCoin(state, player_id);
     }
 
     double best_time_to_coin = best_moves[player_id].best_time;
@@ -168,10 +262,7 @@ ab::Acceleration ab::PredictiveStrategy::GetTurn(const ab::FieldState& state,
         if (best_moves[player_index].coin_id == aim_coin &&
             best_moves[player_index].best_time < best_time_to_coin)
         {
-            ab::Acceleration acceleration;
-            acceleration.x = 0;
-            acceleration.y = 0;
-            return acceleration;
+            return MoveToClosestCoin(state, player_id);
         }
     }
     return best_moves[player_id].best_acceleration;
