@@ -64,6 +64,7 @@ class ConnectionWithOutput : public Connection {
 private:
     std::queue<Buffer> output_queue_;
     bool close_after_output_;
+    std::mutex mutex_;
 
 public:
     ConnectionWithOutput(std::shared_ptr<Socket> socket,
@@ -79,6 +80,7 @@ public:
     }
 
     virtual void onOutput() {
+        std::unique_lock<std::mutex>(mutex_);
         while (!output_queue_.empty()) {
             writer_->write(output_queue_.front());
             output_queue_.pop();
