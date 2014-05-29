@@ -1,16 +1,16 @@
 import os
 import ycm_core
 
-flags = [
-'-Wall',
-'-Wextra',
-'-Werror',
-'-std=c++11',
-'-stdlib=libc++',
-'-I', 'include/',
-'-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/c++/v1',
-'-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include',
-]
+flags = ['-Wall',
+         '-Wextra',
+         '-Werror',
+         '-std=c++11',
+         '-stdlib=libc++',
+         '-I', 'include/',
+         '-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/c++/v1',
+         '-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include',
+         '-isystem', '/usr/lib/c++/v1'
+        ]
 
 compilation_database_folder = ''
 
@@ -87,7 +87,6 @@ def FlagsForFile( filename, **kwargs ):
     relative_to = DirectoryOfThisScript()
     final_flags = MakeRelativePathsInFlagsAbsolute( flags, relative_to )
 
-  return {
-    'flags': final_flags,
-    'do_cache': True
-  }
+  return {'flags': final_flags,
+          'do_cache': True
+         }
