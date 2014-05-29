@@ -10,11 +10,13 @@
 namespace ab {
 
 ConnectionId MessageManager::AddConnection(std::weak_ptr<mio::Connection> connection) {
+    std::unique_lock<std::mutex> lock(connection_mutex_);
     connections_.push_back(connection);
     return connections_.size() - 1;
 }
 
 std::weak_ptr<mio::Connection> MessageManager::GetConnection(ConnectionId connection) {
+    std::unique_lock<std::mutex> lock(connection_mutex_);
     return connections_.at(connection);
 }
 

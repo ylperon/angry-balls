@@ -79,6 +79,7 @@ void GameStateManager::Run() {
     std::cerr << "Finish game!\n";
     auto om = observers_manager_.lock();
     if (om) {
+        std::unique_lock<std::mutex>(mutex_);
         om->SendFinishToAllObservers();
     } else {
         return;

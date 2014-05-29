@@ -21,7 +21,7 @@ public:
     void AddClient(ConnectionId client_id);
     void AddViewer(ConnectionId viewer_id);
 
-    void SendStateToAllObservers(const FieldState &state);
+    void SendStateToAllObservers(FieldState state);
     void SendFinishToAllObservers();
 
     void SendClientConfirmation(ConnectionId client_id, PlayerId player_id, bool client_added);

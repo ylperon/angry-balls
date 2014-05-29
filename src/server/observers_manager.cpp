@@ -43,7 +43,7 @@ void ObserversManager::AddViewer(ConnectionId viewer_connection_id) {
     SendViewerConfirmation(viewer_connection_id, id);
 }
 
-void ObserversManager::SendStateToAllObservers(const FieldState &state) {
+void ObserversManager::SendStateToAllObservers(FieldState state) {
     FieldStateMessage message;
     message.field_state = state;
 
