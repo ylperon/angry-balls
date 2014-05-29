@@ -2,6 +2,8 @@
 
 #include "mio.hpp"
 
+#include <mutex>
+
 namespace mio {
 
 class Connection {

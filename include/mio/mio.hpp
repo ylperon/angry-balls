@@ -4,6 +4,7 @@
 #include <utility>
 #include <list>
 #include <queue>
+#include <stdexcept>
 
 #include "socket.hpp"
 
