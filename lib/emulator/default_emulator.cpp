@@ -100,10 +100,11 @@ void ResolveCollision(const double /*field_radius*/, ab::Player& player)
     border_normal.y = -player.center.y;
     Normalize(&border_normal);
 
-    const double dot_product = player.velocity.x * border_normal.y
-                                - player.velocity.y * border_normal.x;
-    player.velocity.x -= 2.0 * dot_product * border_normal.x;
-    player.velocity.y -= 2.0 * dot_product * border_normal.y;
+    const double dot_product = player.velocity.x * border_normal.x + player.velocity.y * border_normal.y;
+    if (dot_product < 0) {
+        player.velocity.x -= 2.0 * dot_product * border_normal.x;
+        player.velocity.y -= 2.0 * dot_product * border_normal.y;
+    }
 }
 
 void HandleBallToBorderCollisions(const double field_radius, std::vector<ab::Player>& players)
