@@ -35,7 +35,7 @@ void MessageManager::DispatchMessage(std::unique_ptr<Message> message, Connectio
     } else if (message->type == kViewerSubscribeRequestMessage) {
         om->AddViewer(connection_id);
     } else if (message->type == kTurnMessage) {
-        const TurnMessage* const turn_message = dynamic_cast<TurnMessage*>(message.release());
+        const TurnMessage* const turn_message = dynamic_cast<TurnMessage*>(message.get());
         assert(nullptr != turn_message);
 
         auto gsm = game_state_manager_.lock();
