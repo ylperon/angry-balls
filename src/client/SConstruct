@@ -8,8 +8,14 @@ AddOption('--use-asan',
           action = 'store_true',
           help = 'Use AddressSanitizer.'
          )
+AddOption('--use-tsan',
+          default = False,
+          action = 'store_true',
+          help = 'Use ThreadSanitizer.'
+         )
 debug_mode = GetOption('debug_build')
 use_asan = GetOption('use_asan')
+use_tsan = GetOption('use_tsan')
 
 import os
 
@@ -36,6 +42,10 @@ if use_asan:
     cpp_flags.append(['-fno-omit-frame-pointer',
                       '-fno-optimize-sibling-calls',
                       '-fsanitize=address'
+                     ]
+                    )
+if use_tsan:
+    cpp_flags.append(['-fsanitize=thread'
                      ]
                     )
 compiler = 'clang++'
@@ -74,6 +84,8 @@ lib_path = [os.path.join(x, build_subdir) for x in lib_path]
 linker_flags = []
 if use_asan:
     linker_flags.append(['-fsanitize=address'])
+if use_tsan:
+    linker_flags.append(['-fsanitize=thread'])
 
 env.Append(LIBS = libs,
            LIBPATH = lib_path,
