@@ -6,7 +6,7 @@
 namespace {
 
 static const double kPi = acos(-1.0);
-static constexpr size_t kAngleStepNumber = 10000;
+static constexpr size_t kAngleStepNumber = 100;
 
 struct BestMoveToCoin
 {
