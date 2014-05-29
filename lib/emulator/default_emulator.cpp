@@ -62,10 +62,10 @@ void ResolveCollision(ab::Player& lhs_player, ab::Player& rhs_player)
 
     collision.x /= distance;
     collision.y /= distance;
-    const double lhs_impuls_component = lhs_player.velocity.x * collision.y
-                                        - lhs_player.velocity.y * collision.x;
-    const double rhs_impuls_component = rhs_player.velocity.x * collision.y
-                                        - rhs_player.velocity.y * collision.x;
+    const double lhs_impuls_component = lhs_player.velocity.x * collision.x
+                                        + lhs_player.velocity.y * collision.y;
+    const double rhs_impuls_component = rhs_player.velocity.x * collision.x
+                                        + rhs_player.velocity.y * collision.y;
 
     lhs_player.velocity.x += collision.x * (rhs_impuls_component - lhs_impuls_component);
     lhs_player.velocity.y += collision.y * (rhs_impuls_component - lhs_impuls_component);
