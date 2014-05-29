@@ -79,11 +79,15 @@ const HttpResponse game_state_handler(ViewerClient& client, const HttpRequest& r
   ab::FieldState field;
   bool have_field;
   client.get_field(field, have_field);
-  
-  ab::FieldStateMessage msg;
-  msg.field_state = field;
+  string body;
+  if (have_field) {
+    ab::FieldStateMessage msg;
+    msg.field_state = field;
 
-  string body = ab::BuildJsonMessage(&msg);
+    body = ab::BuildJsonMessage(&msg);
+  } else {
+    body = "null";
+  }
 
   result.response_body = vector<unsigned char>(body.begin(), body.end());
   return result;

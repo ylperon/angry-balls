@@ -17,27 +17,32 @@ var gameState = null; /*{
 function updateScoreBoard() {
     var html = '';
     var players = [];
-    if (gameState.players) {
-    for (var i = 0; i < gameState.players.length; ++i) {
-        var player = gameState.players[i];
-        players.push(player);
-    }
-    players.sort(function (p1, p2) {
-        return p1.score < p2.score;
-    });
-    
-    for (var i = 0; i < players.length; ++i) {
-        var player = players[i];
-        html += '<div>' + player.id + ': ' + Math.round(player.score) + '</div>';
-    }
+    if (!gameState) {
+        html += '<div>No game state</div>';
+    } else {
+        html += '<div>State id: ' + gameState.state_id + '</div>';
+        if (gameState.players) {
+            for (var i = 0; i < gameState.players.length; ++i) {
+                var player = gameState.players[i];
+                players.push(player);
+            }
+            players.sort(function (p1, p2) {
+                return p1.score < p2.score;
+            });
+            
+            for (var i = 0; i < players.length; ++i) {
+                var player = players[i];
+                html += '<div>' + player.id + ': ' + Math.round(player.score) + '</div>';
+            }
+        }
     }
     
     document.getElementById('score-board').innerHTML = html;
 }
 
 function drawGameState() {
-    if (!gameState) { return; }
     updateScoreBoard();
+    if (!gameState) { return; }
     var canvas = document.getElementById('gamefield');
     var ctx = canvas.getContext('2d');
     var cnvWidth = canvas.width, cnvHeight = canvas.height;
