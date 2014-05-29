@@ -29,14 +29,21 @@ bool GameStateManager::AddPlayer(PlayerId *id) {
     state_.players.push_back(new_player); 
     *id = new_player.id;
     turns_.resize(state_.players.size());
+    turns_.at(new_player.id).player_id = new_player.id;
+    turns_.at(new_player.id).acceleration.x = 0;
+    turns_.at(new_player.id).acceleration.y = 0;
+    turns_.at(new_player.id).state_id = 0;
 
     return true;
 }
 
 void GameStateManager::FilterTurns() {
-    std::replace_if(turns_.begin(), turns_.end(), 
-            [=](const Turn &turn) { return turn.state_id != state_.id; },
-            Turn());
+    for (auto turn: turns_) {
+        if (turn.state_id != state_.id) {
+            turn.acceleration.x = 0;
+            turn.acceleration.y = 0;
+        }
+    }
 }
 
 void GameStateManager::Run() {
