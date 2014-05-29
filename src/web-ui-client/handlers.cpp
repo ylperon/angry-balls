@@ -17,7 +17,7 @@ const HttpResponse index_handler(const HttpRequest& request) {
   result.status_message = "OK";
   result.headers.push_back(HttpHeader("content-type", "text/html; charset=utf-8"));
   
-  string body = reinterpret_cast<const char*>(index_html_contents);
+  string body(reinterpret_cast<const char*>(index_html_contents), sizeof(index_html_contents));
   result.response_body = vector<unsigned char>(body.begin(), body.end());
   return result;
 }
@@ -29,7 +29,7 @@ const HttpResponse jquery_handler(const HttpRequest& request) {
   result.status_message = "OK";
   result.headers.push_back(HttpHeader("content-type", "text/javascript; charset=utf-8"));
   
-  string body = reinterpret_cast<const char*>(jquery_js_contents);
+  string body(reinterpret_cast<const char*>(jquery_js_contents), sizeof(jquery_js_contents));
   result.response_body = vector<unsigned char>(body.begin(), body.end());
   return result;
 }
@@ -41,7 +41,7 @@ const HttpResponse app_js_handler(const HttpRequest& request) {
   result.status_message = "OK";
   result.headers.push_back(HttpHeader("content-type", "text/javascript; charset=utf-8"));
   
-  string body = reinterpret_cast<const char*>(app_js_contents);
+  string body(reinterpret_cast<const char*>(app_js_contents), sizeof(app_js_contents));
   result.response_body = vector<unsigned char>(body.begin(), body.end());
   return result;
 }
