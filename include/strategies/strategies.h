@@ -58,4 +58,21 @@ private:
     std::mt19937 generator_;
 };
 
+class RandomAccelerationStrategy : public StrategyInterface
+{
+public:
+    RandomAccelerationStrategy();
+
+    Acceleration GetTurn(const FieldState& state, const PlayerId player_id) override;
+
+    virtual ~RandomAccelerationStrategy() {}
+
+private:
+    static constexpr double kTimeToChangeAcceleration = 2000.0;
+
+    double time_until_change_of_acceleration_;
+    ab::Acceleration previous_acceleration_;
+    std::mt19937 generator_;
+};
+
 } // namespace ab

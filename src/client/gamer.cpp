@@ -200,7 +200,8 @@ enum StrategyType : int
     kMoveToClosestStrategy,
     kPredictiveStrategy,
     kDrunkStrategy,
-    kBuffaloStrategy
+    kBuffaloStrategy,
+    kRandomAccelerationStrategy
 };
 
 struct Options
@@ -213,7 +214,8 @@ Options ParseOptions(int argc, char** argv)
 {
     const std::string usage_message
         = std::string(argv[0]) + " --port <port> --strategy <strategy>\n"
-          + "Where <strategy> is in {do-nothing, move-to-closest, predictive, drunk, buffalo}";
+          + "Where <strategy> is in {do-nothing, move-to-closest, predictive, drunk, buffalo"
+          + ", random}";
 
     if (5 != argc || std::string("--port") != argv[1] || std::string("--strategy") != argv[3]) {
         std::cerr << usage_message << std::endl;
@@ -233,6 +235,8 @@ Options ParseOptions(int argc, char** argv)
         options.strategy = kDrunkStrategy;
     else if (std::string("buffalo") == argv[4])
         options.strategy = kBuffaloStrategy;
+    else if (std::string("random") == argv[4])
+        options.strategy = kRandomAccelerationStrategy;
     else {
         std::cerr << usage_message << std::endl;
         std::exit(1);
@@ -263,6 +267,10 @@ int main(int argc, char** argv)
             break;
         } case kBuffaloStrategy: {
             ab::Gamer<ab::BuffaloStrategy> gamer;
+            gamer.Game(options.port);
+            break;
+        } case kRandomAccelerationStrategy: {
+            ab::Gamer<ab::RandomAccelerationStrategy> gamer;
             gamer.Game(options.port);
             break;
         }
