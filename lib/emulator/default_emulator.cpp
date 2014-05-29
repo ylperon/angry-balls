@@ -124,7 +124,9 @@ void ab::DefaultEmulator::Emulate(const std::vector<ab::Turn>& turns,
 
     ApplyAcceleration(turns, state.time_delta, state.players);
 
-    const double step_time_delta = state.time_delta / static_cast<double>(steps_number_);
+    // remove this when game_server will have appropriate time delta
+    const double in_game_time_delta = state.time_delta / 100.0;
+    const double step_time_delta = in_game_time_delta / static_cast<double>(steps_number_);
     for (size_t index = 0; index < steps_number_; ++index) {
         MovePlayers(step_time_delta, state.players);
         HandleBallToBallCollisions(state.players);
