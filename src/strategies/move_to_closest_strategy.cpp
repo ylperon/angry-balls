@@ -26,7 +26,7 @@ ab::Acceleration ab::MoveToClosestStrategy::GetTurn(const ab::FieldState& state,
     }
 
     Acceleration acceleration;
-    acceleration.x = -1.0;
+    acceleration.x = 0;
     acceleration.y = 0;
 
     if (kInvalidIndex == closest_coin_index)
