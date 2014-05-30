@@ -29,6 +29,7 @@ cpp_path = [os.path.join(project_root, x) for x in cpp_path]
 
 
 cpp_flags = ['-Wall',
+             '-pedantic',
              '-std=c++11',
              '-stdlib=libc++',
              '-pthread'
