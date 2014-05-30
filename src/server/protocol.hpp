@@ -16,6 +16,8 @@ private:
         READING_DATA,
     };
 
+    enum { LENGTH_SIZE = 4 };
+
     struct State {
         StateType state;
         size_t message_length; 
@@ -31,15 +33,12 @@ private:
     };
 
     std::shared_ptr<mio::RequestHandler> request_handler_;
-    size_t length_size_;
     State state_;
 
 public:
-    InputLengthPrefixedProtocol(std::shared_ptr<mio::RequestHandler> request_handler,
-            size_t length_size = 4) :
+    InputLengthPrefixedProtocol(std::shared_ptr<mio::RequestHandler> request_handler) :
         request_handler_(request_handler),
-        length_size_(length_size),
-        state_(length_size)
+        state_(LENGTH_SIZE)
         {}
 
     virtual void processDataChunk(mio::Buffer buffer) {
@@ -53,7 +52,7 @@ public:
                     // new data portion
                     if (portion_size + state_.read_length < state_.message_length) {
                         // read only part of length
-                        state_.message_length = length_size_; 
+                        state_.message_length = LENGTH_SIZE; 
                         std::copy(buffer_seek, 
                                 buffer_seek + portion_size, 
                                 state_.buffer->begin() + state_.read_length);
@@ -66,7 +65,7 @@ public:
                         std::copy(buffer_seek, 
                                 buffer_seek + remaining_length, 
                                 state_.buffer->begin() + state_.read_length);
-                        char length_buffer[length_size_];
+                        char length_buffer[LENGTH_SIZE];
     
                         assert(state_.buffer->size() == state_.message_length);
                         std::copy(state_.buffer->begin(), state_.buffer->end(), length_buffer);
@@ -99,7 +98,7 @@ public:
                         buffer_seek += remaining_length;
                         request_handler_->handleRequest(state_.buffer);
 
-                        state_ = State(length_size_);
+                        state_ = State(LENGTH_SIZE);
                     }          
                     break;
 
