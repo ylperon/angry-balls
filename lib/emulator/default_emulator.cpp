@@ -123,7 +123,7 @@ void ab::DefaultEmulator::Emulate(const std::vector<ab::Turn>& turns,
     assert(state.players.size() == turns.size());
     assert(steps_number_ > 0);
 
-    ApplyAcceleration(turns, state.time_delta, state.players);
+    ApplyAcceleration(turns, state.time_delta, state.velocity_max, state.players);
 
     // remove this when game_server will have appropriate time delta
     const double in_game_time_delta = state.time_delta / 100.0;
