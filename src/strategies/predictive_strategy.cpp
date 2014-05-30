@@ -2,13 +2,13 @@
 #include "util/geometry.h"
 
 #include <vector>
+
 #include <cmath>
-#include <iostream>
 
 namespace {
 
 static const double kPi = acos(-1.0);
-static const double kBiggestDistance = 1E8;
+static constexpr double kBiggestDistance = 1E8;
 static constexpr size_t kAngleStepNumber = 100;
 
 struct BestMoveToCoin
@@ -176,17 +176,17 @@ ab::Acceleration MoveToClosestCoin(const ab::FieldState& state, const ab::Player
         return acceleration;
     }
 
-    const double X_closest_coin = state.coins[closest_coin_index].center.x;
-    const double Y_closest_coin = state.coins[closest_coin_index].center.y;
+    const double closest_coin_x = state.coins[closest_coin_index].center.x;
+    const double closest_coin_y = state.coins[closest_coin_index].center.y;
 
-    const double best_direction_x = X_closest_coin - center_x;
-    const double best_direction_y = Y_closest_coin - center_y;
+    ab::Point best_direction;
+    best_direction.x = closest_coin_x - center_x;
+    best_direction.y = closest_coin_y - center_y;
 
-    const double best_distance_squared =
-            best_direction_x * best_direction_x + best_direction_y * best_direction_y;
+    const double best_distance = Length(best_direction);
 
-    const double best_direction_x_normalized = best_direction_x / sqrt(best_distance_squared);
-    const double best_direction_y_normalized = best_direction_y / sqrt(best_distance_squared);
+    const double best_direction_x_normalized = best_direction.x / best_distance;
+    const double best_direction_y_normalized = best_direction.y / best_distance;
 
     const double segment_start_x = center_x;
     const double segment_start_y = center_y;
@@ -225,20 +225,22 @@ ab::Acceleration MoveToClosestCoin(const ab::FieldState& state, const ab::Player
     const double projection_x = segment_start_x + left_bound * (segment_end_x - segment_start_x);
     const double projection_y = segment_start_y + left_bound * (segment_end_y - segment_start_y);
 
-    double shift_x = projection_x - next_point_x;
-    double shift_y = projection_y - next_point_y;
+    ab::Point shift;
+    shift.x = projection_x - next_point_x;
+    shift.y = projection_y - next_point_y;
 
-    double shift_absolute = sqrt(shift_x * shift_x + shift_y * shift_y);
+    double shift_absolute = Length(shift);
+
     if (shift_absolute < 1) {
-        shift_x += best_direction_x_normalized;
-        shift_y += best_direction_y_normalized;
+        shift.x += best_direction_x_normalized;
+        shift.y += best_direction_y_normalized;
     }
 
-    shift_absolute = sqrt(shift_x * shift_x + shift_y * shift_y);
+    shift_absolute = Length(shift);
 
     ab::Acceleration acceleration;
-    acceleration.x = shift_x / shift_absolute;
-    acceleration.y = shift_y / shift_absolute;
+    acceleration.x = shift.x / shift_absolute;
+    acceleration.y = shift.y / shift_absolute;
     return acceleration;
 }
 
