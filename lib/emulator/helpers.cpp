@@ -63,13 +63,17 @@ std::vector<ab::Acceleration> ab::GetAccelerations(const std::vector<ab::Player>
 
 void ab::ApplyAcceleration(const std::vector<ab::Turn>& turns,
                            const double time_delta,
+                           const double velocity_max,
                            std::vector<ab::Player>& players)
 {
     const std::vector<Acceleration> acceleratons = GetAccelerations(players, turns);
     for (size_t index = 0; index < acceleratons.size(); ++index) {
         players[index].velocity.x += acceleratons[index].x * time_delta;
         players[index].velocity.y += acceleratons[index].y * time_delta;
-        if (Length(players[index].velocity) > 1.0)
+        if (Length(players[index].velocity) > velocity_max) {
             Normalize(&players[index].velocity);
+            players[index].velocity.x *= velocity_max;
+            players[index].velocity.y *= velocity_max;
+        }
     }
 }

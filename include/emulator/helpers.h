@@ -16,6 +16,7 @@ std::vector<Acceleration> GetAccelerations(const std::vector<Player>& players,
 
 void ApplyAcceleration(const std::vector<Turn>& turns,
                        const double time_delta,
+                       const double velocity_max,
                        std::vector<Player>& players);
 
 } // namespace ab
