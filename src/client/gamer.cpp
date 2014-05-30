@@ -134,7 +134,7 @@ void Gamer<Strategy>::Game(size_t port)
 
     std::string json_message;
     while (client_.RecvAll(json_message, 0) != -1) {
-        std::cerr << json_message << std::endl;
+//        std::cerr << json_message << std::endl;
         std::string json_turn;
         if (Turn(json_message, &json_turn)) {
             int send_result = client_.SendAll(json_turn, 0);
