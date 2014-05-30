@@ -78,11 +78,12 @@ public:
         {}
 
     virtual void addOutput(Buffer output) {
+        std::unique_lock<std::mutex> lock(mutex_);
         output_queue_.push(output);
     }
 
     virtual void onOutput() {
-        std::unique_lock<std::mutex>(mutex_);
+        std::unique_lock<std::mutex> lock(mutex_);
         while (!output_queue_.empty()) {
             writer_->write(output_queue_.front());
             output_queue_.pop();
