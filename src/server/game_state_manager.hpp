@@ -41,7 +41,7 @@ private:
         player_generator_(player_generator),
         coin_generator_(coin_generator),
         emulator_(emulator) {
-
+        std::unique_lock<std::mutex> lock(mutex_);
         state_.time_delta = config_.time_delta;
         state_.velocity_max = config_.max_velocity;
         state_.radius = config_.field_radius;

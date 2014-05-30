@@ -11,12 +11,12 @@
 namespace ab {
 
 void GameStateManager::AddTurn(const Turn& turn) {
-    std::unique_lock<std::mutex>(mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
     turns_.at(turn.player_id) = turn;
 }
 
 bool GameStateManager::AddPlayer(PlayerId *id) {
-    std::unique_lock<std::mutex>(mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
 
     if (state_.players.size() >= config_.max_players_count) {
         return false;
@@ -50,7 +50,7 @@ void GameStateManager::Run() {
     std::cerr << "Waiting for " << config_.min_players_count << " players to connect...\n";
     while (true) {
         {
-            std::unique_lock<std::mutex>(mutex_);
+            std::unique_lock<std::mutex> lock(mutex_);
             if (state_.players.size() >= config_.min_players_count) {
                 break;
             }
@@ -64,7 +64,7 @@ void GameStateManager::Run() {
     while (state_.id < config_.max_states_count) {
         ++state_.id;
         {
-            std::unique_lock<std::mutex>(mutex_);
+            std::unique_lock<std::mutex> lock(mutex_);
             GenerateCoin();
 
             auto om = observers_manager_.lock();
@@ -76,7 +76,7 @@ void GameStateManager::Run() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(config_.time_delta));
         {
-            std::unique_lock<std::mutex>(mutex_);
+            std::unique_lock<std::mutex> lock(mutex_);
 
             FilterTurns(); 
             emulator_->Emulate(turns_, state_);
@@ -86,7 +86,7 @@ void GameStateManager::Run() {
     std::cerr << "Finish game!\n";
     auto om = observers_manager_.lock();
     if (om) {
-        std::unique_lock<std::mutex>(mutex_);
+        std::unique_lock<std::mutex> lock(mutex_);
         om->SendFinishToAllObservers();
     } else {
         return;
