@@ -128,8 +128,8 @@ bool Gamer::ConnectionToServer(size_t port)
         return false;
     }
 
-    id_ = network_subscribe_result_message->player_id;
-    std::cerr << "Connected to game server as client with id = " << id_ << std::endl;
+    player_id_ = network_subscribe_result_message->player_id;
+    std::cerr << "Connected to game server as client with id = " << player_id_ << std::endl;
 
     return true;
 }
@@ -179,9 +179,11 @@ bool Gamer::Turn(const std::string& json_state, std::string * const json_turn)
             dynamic_cast<FieldStateMessage*>(message.release()));
 
     TurnMessage turn_message;
-    turn_message.turn.player_id = id_;
+    turn_message.turn.player_id = player_id_;
     turn_message.turn.state_id = field_state_message->field_state.id;
-    turn_message.turn.acceleration = strategy_->GetTurn(field_state_message->field_state, id_);
+    turn_message.turn.acceleration = strategy_->GetTurn(field_state_message->field_state,
+                                                        player_id_
+                                                       );
     turn_message.turn.state_id = field_state_message->field_state.id;
 
     *json_turn = BuildJsonMessage(&turn_message);

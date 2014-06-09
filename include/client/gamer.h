@@ -43,7 +43,7 @@ private:
     bool Finish(const std::string& json_state);
 
 private:
-    size_t id_;
+    PlayerId player_id_;
     ClientIO network_;
     std::unique_ptr<StrategyInterface> strategy_;
 };
