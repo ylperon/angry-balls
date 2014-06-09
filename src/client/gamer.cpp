@@ -1,3 +1,5 @@
+#include "client/gamer.h"
+
 #include <iostream>
 #include <string>
 #include <stdexcept>
@@ -5,10 +7,14 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <ab/strategy_interface.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
-#include "client/gamer.h"
+#include "ab/strategy_interface.h"
 #include "strategies/strategies.h"
+#include "protocol/parse_protocol.h"
 
 namespace ab {
 
