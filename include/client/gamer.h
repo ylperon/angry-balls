@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -9,10 +10,11 @@
 #include <unistd.h>
 
 #include "protocol/parse_protocol.h"
-#include "ab/strategy_interface.h"
 #include "util/basics.h"
 
 namespace ab {
+
+class StrategyInterface;
 
 class IOClient
 {
@@ -30,10 +32,10 @@ private:
 
 };
 
-template <class Strategy>
 class Gamer
 {
 public:
+    void SetStrategy(std::unique_ptr<StrategyInterface>&& strategy);
     void Game(size_t port);
 
 private:
@@ -44,7 +46,7 @@ private:
 private:
     size_t id_;
     IOClient client_;
-    Strategy strategy_;
+    std::unique_ptr<StrategyInterface> strategy_;
 };
 
 } // namespace ab

@@ -4,6 +4,8 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <ab/strategy_interface.h>
+
 #include "client/gamer.h"
 #include "strategies/strategies.h"
 
@@ -82,8 +84,7 @@ int IOClient::RecvAll(std::string& buf, int flags) const
     return total_recv_count;
 }
 
-template <class Strategy>
-bool Gamer<Strategy>::ConnectionToServer(size_t port)
+bool Gamer::ConnectionToServer(size_t port)
 {
     while (!client_.Connection(port)) {
         std::cout << "Connection..." << std::endl;
@@ -126,8 +127,12 @@ bool Gamer<Strategy>::ConnectionToServer(size_t port)
     return true;
 }
 
-template <class Strategy>
-void Gamer<Strategy>::Game(size_t port)
+void Gamer::SetStrategy(std::unique_ptr<StrategyInterface>&& strategy)
+{
+    strategy_ = std::move(strategy);
+}
+
+void Gamer::Game(size_t port)
 {
     if (!ConnectionToServer(port))
         return;
@@ -151,8 +156,7 @@ void Gamer<Strategy>::Game(size_t port)
     }
 }
 
-template <class Strategy>
-bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn)
+bool Gamer::Turn(const std::string& json_state, std::string* json_turn)
 {
     std::unique_ptr<Message> message = ParseJsonMessage(json_state);
     if (!message) {
@@ -169,7 +173,7 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
     TurnMessage turn_message;
     turn_message.turn.player_id = id_;
     turn_message.turn.state_id = field_state_message->field_state.id;
-    turn_message.turn.acceleration = strategy_.GetTurn(field_state_message->field_state, id_);
+    turn_message.turn.acceleration = strategy_->GetTurn(field_state_message->field_state, id_);
     turn_message.turn.state_id = field_state_message->field_state.id;
 
     *json_turn = BuildJsonMessage(&turn_message);
@@ -177,8 +181,7 @@ bool Gamer<Strategy>::Turn(const std::string& json_state, std::string* json_turn
     return true;
 }
 
-template <class Strategy>
-bool Gamer<Strategy>::Finish(const std::string& json_state)
+bool Gamer::Finish(const std::string& json_state)
 {
     std::unique_ptr<Message> message = ParseJsonMessage(json_state);
     if (!message) {
@@ -248,31 +251,33 @@ Options ParseOptions(int argc, char** argv)
 int main(int argc, char** argv)
 {
     const Options options = ParseOptions(argc, argv);
+    ab::Gamer gamer;
     switch (options.strategy) {
         case kDoNothinStrategy: {
-            ab::Gamer<ab::DoNothingStrategy> gamer;
-            gamer.Game(options.port);
+            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
+                        new ab::DoNothingStrategy()));
             break;
         } case kMoveToClosestStrategy: {
-            ab::Gamer<ab::MoveToClosestStrategy> gamer;
-            gamer.Game(options.port);
+            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
+                        new ab::MoveToClosestStrategy()));
             break;
         } case kPredictiveStrategy: {
-            ab::Gamer<ab::PredictiveStrategy> gamer;
-            gamer.Game(options.port);
+            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
+                        new ab::PredictiveStrategy()));
             break;
         } case kDrunkStrategy: {
-            ab::Gamer<ab::DrunkStrategy> gamer;
-            gamer.Game(options.port);
+            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
+                        new ab::DrunkStrategy()));
             break;
         } case kBuffaloStrategy: {
-            ab::Gamer<ab::BuffaloStrategy> gamer;
-            gamer.Game(options.port);
+            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
+                        new ab::BuffaloStrategy()));
             break;
         } case kRandomAccelerationStrategy: {
-            ab::Gamer<ab::RandomAccelerationStrategy> gamer;
-            gamer.Game(options.port);
+            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
+                        new ab::RandomAccelerationStrategy()));
             break;
         }
     }
+    gamer.Game(options.port);
 }
