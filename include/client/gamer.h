@@ -28,16 +28,18 @@ class Gamer
 {
 public:
     void SetStrategy(std::unique_ptr<StrategyInterface>&& strategy);
-    void Game(size_t port);
+    void SetPort(const size_t port);
+    void Run();
 
 private:
-    bool ConnectionToServer(size_t port);
+    bool ConnectionToServer();
     bool Turn(const std::string& json_state, std::string * const json_turn);
     bool Finish(const std::string& json_state);
 
 private:
-    PlayerId player_id_;
+    size_t port_;
     ClientIO network_;
+    PlayerId player_id_;
     std::unique_ptr<StrategyInterface> strategy_;
 };
 

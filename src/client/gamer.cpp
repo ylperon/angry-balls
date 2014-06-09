@@ -29,7 +29,8 @@ ClientIO::ClientIO()
 
 ClientIO::~ClientIO()
 {
-    close(sockfd_);
+    if (sockfd_ >= 0)
+        close(sockfd_);
 }
 
 bool ClientIO::Connection(size_t port) const
@@ -97,9 +98,19 @@ int ClientIO::RecvAll(std::string& buf, int flags) const
     return total_recv_count;
 }
 
-bool Gamer::ConnectionToServer(size_t port)
+void Gamer::SetStrategy(std::unique_ptr<StrategyInterface>&& strategy)
 {
-    while (!network_.Connection(port))
+    strategy_ = std::move(strategy);
+}
+
+void Gamer::SetPort(const size_t port)
+{
+    port_ = port;
+}
+
+bool Gamer::ConnectionToServer()
+{
+    while (!network_.Connection(port_))
         std::cout << "Connection..." << std::endl;
 
     ClientSubscribeRequestMessage network_subscribe_request_message;
@@ -140,18 +151,13 @@ bool Gamer::ConnectionToServer(size_t port)
     return true;
 }
 
-void Gamer::SetStrategy(std::unique_ptr<StrategyInterface>&& strategy)
+void Gamer::Run()
 {
-    strategy_ = std::move(strategy);
-}
-
-void Gamer::Game(size_t port)
-{
-    if (!ConnectionToServer(port))
+    if (!ConnectionToServer())
         return;
 
     std::string json_message;
-    while (network_.RecvAll(json_message, 0) != -1) {
+    while (-1 != network_.RecvAll(json_message, 0)) {
 //        std::cerr << json_message << std::endl;
         std::string json_turn;
         if (Turn(json_message, &json_turn)) {
@@ -269,6 +275,7 @@ int main(int argc, char** argv)
 {
     const Options options = ParseOptions(argc, argv);
     ab::Gamer gamer;
+    gamer.SetPort(options.port);
     switch (options.strategy) {
         case kDoNothinStrategy: {
             gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
@@ -296,7 +303,7 @@ int main(int argc, char** argv)
             break;
         }
     }
-    gamer.Game(options.port);
+    gamer.Run();
 
     return 0;
 }
