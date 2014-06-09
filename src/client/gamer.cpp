@@ -16,9 +16,7 @@
 #include "strategies/strategies.h"
 #include "protocol/parse_protocol.h"
 
-namespace ab {
-
-ClientIO::ClientIO()
+ab::ClientIO::ClientIO()
 {
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd_ < 0) {
@@ -27,13 +25,13 @@ ClientIO::ClientIO()
     }
 }
 
-ClientIO::~ClientIO()
+ab::ClientIO::~ClientIO()
 {
     if (sockfd_ >= 0)
         close(sockfd_);
 }
 
-bool ClientIO::Connection(size_t port) const
+bool ab::ClientIO::Connection(size_t port) const
 {
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -47,7 +45,7 @@ bool ClientIO::Connection(size_t port) const
     return true;
 }
 
-int ClientIO::SendAll(const std::string& buf, int flags) const
+int ab::ClientIO::SendAll(const std::string& buf, int flags) const
 {
     uint32_t length = buf.size();
     char *length_buffer = (char *)(&length);
@@ -70,7 +68,7 @@ int ClientIO::SendAll(const std::string& buf, int flags) const
     return total_sent;
 }
 
-int ClientIO::RecvAll(std::string& buf, int flags) const
+int ab::ClientIO::RecvAll(std::string& buf, int flags) const
 {
     int current_recv_count = 0;
     char buf_length[sizeof(uint32_t)];
@@ -98,17 +96,17 @@ int ClientIO::RecvAll(std::string& buf, int flags) const
     return total_recv_count;
 }
 
-void Gamer::SetStrategy(std::unique_ptr<StrategyInterface>&& strategy)
+void ab::Gamer::SetStrategy(std::unique_ptr<StrategyInterface>&& strategy)
 {
     strategy_ = std::move(strategy);
 }
 
-void Gamer::SetPort(const size_t port)
+void ab::Gamer::SetPort(const size_t port)
 {
     port_ = port;
 }
 
-bool Gamer::ConnectionToServer()
+bool ab::Gamer::ConnectionToServer()
 {
     while (!network_.Connection(port_))
         std::cout << "Connection..." << std::endl;
@@ -151,7 +149,7 @@ bool Gamer::ConnectionToServer()
     return true;
 }
 
-void Gamer::Run()
+void ab::Gamer::Run()
 {
     if (!ConnectionToServer())
         return;
@@ -176,7 +174,7 @@ void Gamer::Run()
     }
 }
 
-bool Gamer::Turn(const std::string& json_state, std::string * const json_turn)
+bool ab::Gamer::Turn(const std::string& json_state, std::string * const json_turn)
 {
     std::unique_ptr<Message> message = ParseJsonMessage(json_state);
     if (!message) {
@@ -203,7 +201,7 @@ bool Gamer::Turn(const std::string& json_state, std::string * const json_turn)
     return true;
 }
 
-bool Gamer::Finish(const std::string& json_state)
+bool ab::Gamer::Finish(const std::string& json_state)
 {
     std::unique_ptr<Message> message = ParseJsonMessage(json_state);
     if (!message) {
@@ -217,8 +215,6 @@ bool Gamer::Finish(const std::string& json_state)
     std::cerr << "Finish game\n";
     return true;
 }
-
-} // namespace ab
 
 enum StrategyType : int
 {
