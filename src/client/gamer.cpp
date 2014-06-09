@@ -12,7 +12,7 @@
 
 namespace ab {
 
-IOClient::IOClient()
+ClientIO::ClientIO()
 {
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd_ < 0) {
@@ -21,12 +21,12 @@ IOClient::IOClient()
     }
 }
 
-IOClient::~IOClient()
+ClientIO::~ClientIO()
 {
     close(sockfd_);
 }
 
-bool IOClient::Connection(size_t port) const
+bool ClientIO::Connection(size_t port) const
 {
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -40,7 +40,7 @@ bool IOClient::Connection(size_t port) const
     return true;
 }
 
-int IOClient::SendAll(const std::string& buf, int flags) const
+int ClientIO::SendAll(const std::string& buf, int flags) const
 {
     uint32_t length = buf.size();
     char *length_buffer = (char *)(&length);
@@ -63,7 +63,7 @@ int IOClient::SendAll(const std::string& buf, int flags) const
     return total_sent;
 }
 
-int IOClient::RecvAll(std::string& buf, int flags) const
+int ClientIO::RecvAll(std::string& buf, int flags) const
 {
     int current_recv_count = 0;
     char buf_length[sizeof(uint32_t)];
@@ -93,18 +93,18 @@ int IOClient::RecvAll(std::string& buf, int flags) const
 
 bool Gamer::ConnectionToServer(size_t port)
 {
-    while (!client_.Connection(port))
+    while (!network_.Connection(port))
         std::cout << "Connection..." << std::endl;
 
-    ClientSubscribeRequestMessage client_subscribe_request_message;
-    int send_result = client_.SendAll(BuildJsonMessage(&client_subscribe_request_message), 0);
+    ClientSubscribeRequestMessage network_subscribe_request_message;
+    int send_result = network_.SendAll(BuildJsonMessage(&network_subscribe_request_message), 0);
     if (-1 == send_result) {
-        std::cerr << "SendAll(client_subscribe_request_message, 0) is failed\n";
+        std::cerr << "SendAll(network_subscribe_request_message, 0) is failed\n";
         return false;
     }
 
     std::string json_start_game_answer;
-    if (-1 == client_.RecvAll(json_start_game_answer, 0)) {
+    if (-1 == network_.RecvAll(json_start_game_answer, 0)) {
         std::cerr << "RecvAll(json_start_game_answer, 0) is failed\n";
         return false;
     }
@@ -120,15 +120,15 @@ bool Gamer::ConnectionToServer(size_t port)
         return false;
     }
 
-    std::unique_ptr<ClientSubscribeResultMessage> client_subscribe_result_message
+    std::unique_ptr<ClientSubscribeResultMessage> network_subscribe_result_message
                 (dynamic_cast<ClientSubscribeResultMessage*>(message.release()));
 
-    if (!client_subscribe_result_message || !client_subscribe_result_message->result) {
+    if (!network_subscribe_result_message || !network_subscribe_result_message->result) {
         std::cerr << "Server refused to accept client\n";
         return false;
     }
 
-    id_ = client_subscribe_result_message->player_id;
+    id_ = network_subscribe_result_message->player_id;
     std::cerr << "Connected to game server as client with id = " << id_ << std::endl;
 
     return true;
@@ -145,11 +145,11 @@ void Gamer::Game(size_t port)
         return;
 
     std::string json_message;
-    while (client_.RecvAll(json_message, 0) != -1) {
+    while (network_.RecvAll(json_message, 0) != -1) {
 //        std::cerr << json_message << std::endl;
         std::string json_turn;
         if (Turn(json_message, &json_turn)) {
-            int send_result = client_.SendAll(json_turn, 0);
+            int send_result = network_.SendAll(json_turn, 0);
             if (-1 == send_result) {
                 std::cerr << "SendAll(json_turn) is failed\n";
                 continue;

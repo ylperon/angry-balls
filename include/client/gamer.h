@@ -16,11 +16,11 @@ namespace ab {
 
 class StrategyInterface;
 
-class IOClient
+class ClientIO
 {
 public:
-    IOClient();
-    ~IOClient();
+    ClientIO();
+    ~ClientIO();
 
     bool Connection(size_t port) const;
 
@@ -29,7 +29,6 @@ public:
 
 private:
     int sockfd_;
-
 };
 
 class Gamer
@@ -45,7 +44,7 @@ private:
 
 private:
     size_t id_;
-    IOClient client_;
+    ClientIO network_;
     std::unique_ptr<StrategyInterface> strategy_;
 };
 
