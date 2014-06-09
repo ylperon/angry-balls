@@ -1,6 +1,7 @@
 Import('env')
 
-cpp_files = ['gamer.cpp'
+cpp_files = ['gamer.cpp',
+             'gamer_main.cpp'
             ]
 
 env.Program(target = 'gamer', 

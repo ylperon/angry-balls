@@ -13,7 +13,6 @@
 #include <unistd.h>
 
 #include "ab/strategy_interface.h"
-#include "strategies/strategies.h"
 #include "protocol/parse_protocol.h"
 
 ab::ClientIO::ClientIO()
@@ -156,7 +155,6 @@ void ab::Gamer::Run()
 
     std::string json_message;
     while (-1 != network_.RecvAll(json_message, 0)) {
-//        std::cerr << json_message << std::endl;
         std::string json_turn;
         if (Turn(json_message, &json_turn)) {
             int send_result = network_.SendAll(json_turn, 0);
@@ -214,92 +212,4 @@ bool ab::Gamer::Finish(const std::string& json_state)
 
     std::cerr << "Finish game\n";
     return true;
-}
-
-enum StrategyType : int
-{
-    kDoNothinStrategy,
-    kMoveToClosestStrategy,
-    kPredictiveStrategy,
-    kDrunkStrategy,
-    kBuffaloStrategy,
-    kRandomAccelerationStrategy
-};
-
-struct Options
-{
-    size_t port;
-    StrategyType strategy;
-};
-
-Options ParseOptions(int argc, char** argv)
-{
-    const std::string usage_message
-        = std::string(argv[0]) + " --port <port> --strategy <strategy>\n"
-          + "Where <strategy> is in {do-nothing, move-to-closest, predictive, drunk, buffalo"
-          + ", random}";
-
-    if (5 != argc || std::string("--port") != argv[1] || std::string("--strategy") != argv[3]) {
-        std::cerr << usage_message << std::endl;
-        std::exit(1);
-    }
-
-    Options options;
-    options.port = atoi(argv[2]);
-
-    if (std::string("do-nothing") == argv[4])
-        options.strategy = kDoNothinStrategy;
-    else if (std::string("move-to-closest") == argv[4])
-        options.strategy = kMoveToClosestStrategy;
-    else if (std::string("predictive") == argv[4])
-        options.strategy = kPredictiveStrategy;
-    else if (std::string("drunk") == argv[4])
-        options.strategy = kDrunkStrategy;
-    else if (std::string("buffalo") == argv[4])
-        options.strategy = kBuffaloStrategy;
-    else if (std::string("random") == argv[4])
-        options.strategy = kRandomAccelerationStrategy;
-    else {
-        std::cerr << usage_message << std::endl;
-        std::exit(1);
-    }
-
-    return options;
-}
-
-int main(int argc, char** argv)
-{
-    const Options options = ParseOptions(argc, argv);
-    ab::Gamer gamer;
-    gamer.SetPort(options.port);
-    switch (options.strategy) {
-        case kDoNothinStrategy: {
-            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
-                        new ab::DoNothingStrategy()));
-            break;
-        } case kMoveToClosestStrategy: {
-            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
-                        new ab::MoveToClosestStrategy()));
-            break;
-        } case kPredictiveStrategy: {
-            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
-                        new ab::PredictiveStrategy()));
-            break;
-        } case kDrunkStrategy: {
-            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
-                        new ab::DrunkStrategy()));
-            break;
-        } case kBuffaloStrategy: {
-            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
-                        new ab::BuffaloStrategy()));
-            break;
-        } case kRandomAccelerationStrategy: {
-            gamer.SetStrategy(std::unique_ptr<ab::StrategyInterface>(
-                        new ab::RandomAccelerationStrategy()));
-            break;
-        }
-    }
-    gamer.Run();
-
-    return 0;
 }
