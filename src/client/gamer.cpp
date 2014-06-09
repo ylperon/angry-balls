@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 #include <cstring>
 #include <cstdlib>
@@ -16,7 +17,7 @@ IOClient::IOClient()
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd_ < 0) {
         std::cerr << "Failed to create socket\n";
-        throw;
+        throw std::runtime_error("Failed to create socket");
     }
 }
 
@@ -35,23 +36,30 @@ bool IOClient::Connection(size_t port) const
         std::cerr << "Connection failed\n";
         return false;
     }
+
     return true;
 }
 
 int IOClient::SendAll(const std::string& buf, int flags) const
 {
     uint32_t length = buf.size();
-    char *length_buffer = (char *) (&length);
+    char *length_buffer = (char *)(&length);
 
     auto full_buf = std::string(length_buffer, length_buffer + sizeof(length)) + buf;
 
     size_t total_sent = 0;
     while (total_sent < full_buf.length()) {
-        int current_sent = send(sockfd_, full_buf.c_str() + total_sent, full_buf.length() - total_sent, flags);
-        if (current_sent == -1)
+        int current_sent = send(sockfd_,
+                                full_buf.c_str() + total_sent,
+                                full_buf.length() - total_sent,
+                                flags
+                               );
+        if (-1 == current_sent)
             return -1;
+
         total_sent += current_sent;
     }
+
     return total_sent;
 }
 
@@ -60,9 +68,9 @@ int IOClient::RecvAll(std::string& buf, int flags) const
     int current_recv_count = 0;
     char buf_length[sizeof(uint32_t)];
     current_recv_count = recv(sockfd_, buf_length, sizeof(buf_length), flags);
-    if (current_recv_count == -1) {
+    if (-1 == current_recv_count)
         return -1;
-    }
+
     size_t length = *(uint32_t *)buf_length;
 
     //buf.resize(length);
@@ -71,9 +79,8 @@ int IOClient::RecvAll(std::string& buf, int flags) const
     size_t total_recv_count = 0;
     while (total_recv_count < length) {
         current_recv_count = recv(sockfd_, current_buf, sizeof(current_buf), flags);
-        if (current_recv_count == -1) {
+        if (-1 == current_recv_count)
             return -1;
-        }
 
         buf.append(current_buf, current_recv_count);
         total_recv_count += current_recv_count;
@@ -86,19 +93,18 @@ int IOClient::RecvAll(std::string& buf, int flags) const
 
 bool Gamer::ConnectionToServer(size_t port)
 {
-    while (!client_.Connection(port)) {
+    while (!client_.Connection(port))
         std::cout << "Connection..." << std::endl;
-    }
 
     ClientSubscribeRequestMessage client_subscribe_request_message;
     int send_result = client_.SendAll(BuildJsonMessage(&client_subscribe_request_message), 0);
-    if (send_result == -1) {
+    if (-1 == send_result) {
         std::cerr << "SendAll(client_subscribe_request_message, 0) is failed\n";
         return false;
     }
 
     std::string json_start_game_answer;
-    if (client_.RecvAll(json_start_game_answer, 0) == -1) {
+    if (-1 == client_.RecvAll(json_start_game_answer, 0)) {
         std::cerr << "RecvAll(json_start_game_answer, 0) is failed\n";
         return false;
     }
@@ -124,6 +130,7 @@ bool Gamer::ConnectionToServer(size_t port)
 
     id_ = client_subscribe_result_message->player_id;
     std::cerr << "Connected to game server as client with id = " << id_ << std::endl;
+
     return true;
 }
 
@@ -143,7 +150,7 @@ void Gamer::Game(size_t port)
         std::string json_turn;
         if (Turn(json_message, &json_turn)) {
             int send_result = client_.SendAll(json_turn, 0);
-            if (send_result == -1) {
+            if (-1 == send_result) {
                 std::cerr << "SendAll(json_turn) is failed\n";
                 continue;
             }
@@ -152,23 +159,24 @@ void Gamer::Game(size_t port)
         } else {
             std::cerr << "Bad message received " << json_message << std::endl;
         }
-        json_message = std::string();
+
+        json_message.clear();
     }
 }
 
-bool Gamer::Turn(const std::string& json_state, std::string* json_turn)
+bool Gamer::Turn(const std::string& json_state, std::string * const json_turn)
 {
     std::unique_ptr<Message> message = ParseJsonMessage(json_state);
     if (!message) {
         std::cerr << "Unsuccessful message parse\n";
         return false;
     }
-    if (message->type != MessageType::kFieldStateMessage) {
-        return false;
-    }
 
-    std::unique_ptr<FieldStateMessage> field_state_message
-                                            (dynamic_cast<FieldStateMessage*>(message.release()));
+    if (message->type != MessageType::kFieldStateMessage)
+        return false;
+
+    std::unique_ptr<FieldStateMessage> field_state_message(
+            dynamic_cast<FieldStateMessage*>(message.release()));
 
     TurnMessage turn_message;
     turn_message.turn.player_id = id_;
@@ -188,9 +196,10 @@ bool Gamer::Finish(const std::string& json_state)
         std::cerr << "Unsuccessful message parse\n";
         return false;
     }
-    if (message->type != MessageType::kFinishMessage) {
+
+    if (message->type != MessageType::kFinishMessage)
         std::cerr << "Bad message type: " + ToString(message->type) + '\n';
-    }
+
     std::cerr << "Finish game\n";
     return true;
 }
@@ -280,4 +289,6 @@ int main(int argc, char** argv)
         }
     }
     gamer.Game(options.port);
+
+    return 0;
 }
