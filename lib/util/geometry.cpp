@@ -1,7 +1,5 @@
 #include "util/geometry.h"
 
-#include "util/basics.h"
-
 #include <cassert>
 #include <cmath>
 

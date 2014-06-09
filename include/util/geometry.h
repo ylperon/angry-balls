@@ -2,7 +2,11 @@
 
 namespace ab {
 
-struct Point;
+struct Point
+{
+    double x;
+    double y;
+};
 
 double Length(const Point point);
 

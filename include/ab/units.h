@@ -2,13 +2,9 @@
 
 #include <vector>
 
-namespace ab {
+#include "util/geometry.h"
 
-struct Point
-{
-    double x;
-    double y;
-};
+namespace ab {
 
 struct Vector : Point {};
 
@@ -16,10 +12,10 @@ struct Velocity : Point {};
 
 struct Acceleration : Point {};
 
-typedef unsigned int PlayerId;
-typedef unsigned int ViewerId;
+using PlayerId = unsigned int;
+using ViewerId = unsigned int;
 
-typedef double Score;
+using Score = double;
 
 struct Player
 {
@@ -40,7 +36,7 @@ struct Coin
     Score value;
 };
 
-typedef unsigned long long FieldStateId;
+using FieldStateId = unsigned long long;
 
 struct FieldState
 {
