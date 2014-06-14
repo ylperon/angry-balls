@@ -1,9 +1,11 @@
 #include "strategies/strategies.h"
-#include "util/geometry.h"
 
 #include <vector>
+#include <limits>
 
 #include <cmath>
+
+#include "util/geometry.h"
 
 namespace {
 
@@ -152,7 +154,7 @@ BestMoveToCoin GetBestMove(const ab::FieldState& state, const ab::PlayerId playe
 ab::Acceleration MoveToClosestCoin(const ab::FieldState& state, const ab::PlayerId player_id)
 {
     double min_distance = kBiggestDistance;
-    size_t closest_coin_index = -1;
+    size_t closest_coin_index = std::numeric_limits<size_t>::max();
 
     double center_x = state.players[player_id].center.x;
     double center_y = state.players[player_id].center.y;
@@ -169,7 +171,7 @@ ab::Acceleration MoveToClosestCoin(const ab::FieldState& state, const ab::Player
         }
     }
 
-    if (-1 == closest_coin_index) {
+    if (std::numeric_limits<size_t>::max() == closest_coin_index) {
         ab::Acceleration acceleration;
         acceleration.x = 1;
         acceleration.y = 0;
