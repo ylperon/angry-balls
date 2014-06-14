@@ -245,13 +245,12 @@ ab::Acceleration MoveToClosestCoin(const ab::FieldState& state, const ab::Player
 }
 
 ab::Acceleration ab::PredictiveStrategy::GetTurn(const ab::FieldState& state,
-                                                    const ab::PlayerId player_id
-){
-
+                                                 const ab::PlayerId player_id)
+{
     size_t players_number = state.players.size();
     std::vector<BestMoveToCoin> best_moves;
 
-    for (int player_index = 0; player_index < players_number; ++player_index)
+    for (size_t player_index = 0; player_index < players_number; ++player_index)
         best_moves.push_back(GetBestMove(state, player_index));
 
     int aim_coin = best_moves[player_id].coin_id;
@@ -260,7 +259,7 @@ ab::Acceleration ab::PredictiveStrategy::GetTurn(const ab::FieldState& state,
     }
 
     double best_time_to_coin = best_moves[player_id].best_time;
-    for (int player_index = 0; player_index < players_number; ++player_index) {
+    for (size_t player_index = 0; player_index < players_number; ++player_index) {
         if (best_moves[player_index].coin_id == aim_coin &&
             best_moves[player_index].best_time < best_time_to_coin)
         {
