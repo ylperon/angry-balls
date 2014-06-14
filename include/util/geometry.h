@@ -8,6 +8,8 @@ struct Point
     double y;
 };
 
+struct Vector : Point {};
+
 double Length(const Point point);
 
 double Distance(const Point lhs, const Point rhs);

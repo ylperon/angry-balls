@@ -6,8 +6,6 @@
 
 namespace ab {
 
-struct Vector : Point {};
-
 struct Velocity : Point {};
 
 struct Acceleration : Point {};
