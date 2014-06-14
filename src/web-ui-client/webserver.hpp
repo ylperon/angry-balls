@@ -104,7 +104,7 @@ struct HttpHeader
     std::string name;
     std::string value;
 
-    static const std::string normalize_name(const std::string& name);
+    static std::string normalize_name(const std::string& name);
 
     HttpHeader() = default;
     HttpHeader(const std::string& name, const std::string& value)
@@ -121,7 +121,7 @@ struct HttpRequest
     Url url;
     std::vector<HttpHeader> headers;
 
-    static const HttpRequest parse(const std::vector<unsigned char>& body);
+    static HttpRequest parse(const std::vector<unsigned char>& body);
 };
 
 struct HttpResponse
@@ -132,7 +132,7 @@ struct HttpResponse
     std::vector<HttpHeader> headers;
     std::vector<unsigned char> response_body;
 
-    const std::vector<unsigned char> serialize() const;
+    std::vector<unsigned char> serialize() const;
 };
 
 struct WebServer
@@ -153,7 +153,7 @@ struct WebServer
     const ErrorValue create_listen_socket();
     const ErrorValue listen_on_socket();
 
-    static const HttpResponse default_http_handler(const HttpRequest& request);
+    static HttpResponse default_http_handler(const HttpRequest& request);
 };
 
 class ClientHandler

@@ -151,7 +151,7 @@ void WebServer::accept_loop()
 }
 
 
-const HttpResponse WebServer::default_http_handler(const HttpRequest& request)
+HttpResponse WebServer::default_http_handler(const HttpRequest& request)
 {
     HttpResponse result;
     result.version = request.version;
