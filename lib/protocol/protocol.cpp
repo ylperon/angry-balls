@@ -1,4 +1,4 @@
-#include "protocol/parse_protocol.h"
+#include "protocol/protocol.h"
 
 #include <sstream>
 #include <stdexcept>
