@@ -67,7 +67,7 @@ bool ab::TryFromString(const std::string& message, ab::MessageType& type)
 ab::MessageType ab::FromString(const std::string& message)
 {
     MessageType type;
-    if (TryFromString(message, type))
+    if (!TryFromString(message, type))
         throw std::runtime_error("Failed to convert string to ab::MessageType");
 
     return type;
