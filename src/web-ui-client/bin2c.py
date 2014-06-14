@@ -23,6 +23,8 @@ if __name__ == "__main__":
 
     contentFile = open(filename, "rb");
 
+    print '/* This is automatically generated file! Do not edit it!'
+    print '*/'
     print '#pragma once'
     print "static unsigned char %s[] = {" % (varname,),
 
