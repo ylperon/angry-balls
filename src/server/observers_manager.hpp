@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "util/basics.h"
+#include "ab/units.h"
 #include "message_manager.hpp"
 
 namespace ab {
@@ -12,7 +12,7 @@ private:
     std::weak_ptr<MessageManager> message_manager_;
     std::weak_ptr<GameStateManager> game_state_manager_;
 
-    void SendMessageToConnections(const Message& message, 
+    void SendMessageToConnections(const Message& message,
         const std::vector<ConnectionId>& connections);
 public:
     void SetMessageManager(std::weak_ptr<MessageManager> message_manager);

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <random>
 
-#include "util/basics.h"
+#include "ab/units.h"
 
 #include "game_state_manager.hpp"
 #include "message_manager.hpp"
@@ -22,11 +22,11 @@ bool GameStateManager::AddPlayer(PlayerId *id) {
         return false;
     }
 
-    Player new_player = player_generator_->GetPlayer(config_.field_radius, 
-            config_.player_radius, 
+    Player new_player = player_generator_->GetPlayer(config_.field_radius,
+            config_.player_radius,
             state_.players);
 
-    state_.players.push_back(new_player); 
+    state_.players.push_back(new_player);
     *id = new_player.id;
     turns_.resize(state_.players.size());
     turns_.at(new_player.id).player_id = new_player.id;
@@ -54,9 +54,9 @@ void GameStateManager::Run() {
             if (state_.players.size() >= config_.min_players_count) {
                 break;
             }
-        } 
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(config_.time_delta));
-    } 
+    }
 
     state_.id = 0;
     std::cerr << "Start game! Will run " << config_.max_states_count << " steps\n";
@@ -78,7 +78,7 @@ void GameStateManager::Run() {
         {
             std::unique_lock<std::mutex> lock(mutex_);
 
-            FilterTurns(); 
+            FilterTurns();
             emulator_->Emulate(turns_, state_);
         }
     }
