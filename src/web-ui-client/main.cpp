@@ -78,8 +78,14 @@ int main (int argc, char * argv[])
                                               return game_state_handler(client, req);
                                          };
     int rc_client, rc_webserver;
-    std::thread client_thread = std::thread([&]() { rc_client = client.run(); });
-    std::thread webserver_thread = std::thread([&]() { rc_webserver = server.run(); });
+    std::thread client_thread = std::thread([&client, &rc_client]() {
+                                                rc_client = client.run();
+                                            }
+                                           );
+    std::thread webserver_thread = std::thread([&server, &rc_webserver]() {
+                                                   rc_webserver = server.run();
+                                               }
+                                              );
     client_thread.join();
     webserver_thread.join();
     int return_code = 0;
