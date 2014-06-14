@@ -10,14 +10,14 @@
 #include <thread>
 
 #include <unistd.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 
 #include "server.hpp"
 
-#include "protocol/parse_protocol.h"
+#include "protocol/protocol.h"
 
 using std::string;
 using std::runtime_error;
@@ -53,7 +53,7 @@ void ClientHandler::serve() {
       cerr << "Error sending field state: " << err.message << endl;
       break;
     }
-    
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     field_tick_random(state);
   }
@@ -70,7 +70,7 @@ ErrorValue ClientHandler::handshake() {
     cerr << "Error receiving handshake: " << err.message << endl;
     return ErrorValue::ok();
   }
-  
+
   unique_ptr<ab::Message> msg = ab::ParseJsonMessage(string(buf.begin(), buf.end()));
   if (msg->type != ab::MessageType::kViewerSubscribeRequestMessage) {
     cerr << "Bad handshake type: " << ab::ToString(msg->type) << endl;
@@ -83,7 +83,7 @@ ErrorValue ClientHandler::handshake() {
   string response_msg_json = ab::BuildJsonMessage(&response_msg);
   buf.assign(response_msg_json.begin(), response_msg_json.end());
   err = send_full_message(buf);
-  
+
   if (!err.success) {
     cerr << "Error sending handshake: " << err.message << endl;
     return ErrorValue::ok();
@@ -97,10 +97,10 @@ ErrorValue ClientHandler::notify_field_state(const ab::FieldState& state) {
   ab::FieldStateMessage msg;
   msg.field_state = state;
   string msg_json = ab::BuildJsonMessage(&msg);
-  
+
   vector<unsigned char> buf (msg_json.begin(), msg_json.end());
   ErrorValue err = send_full_message(buf);
-  
+
   return err;
 }
 
@@ -193,7 +193,7 @@ void init_field(ab::FieldState& field) {
   field.radius = 100;
   field.time_delta = 0.1;
   field.velocity_max = 10;
-    
+
   ab::Player p1;
   p1.id = 1;
   p1.center.x = 15;

@@ -5,7 +5,7 @@
 #include "json_message.hpp"
 #include "game_state_manager.hpp"
 
-#include "protocol/parse_protocol.h"
+#include "protocol/protocol.h"
 
 namespace ab {
 
@@ -20,7 +20,7 @@ std::weak_ptr<mio::Connection> MessageManager::GetConnection(ConnectionId connec
     return connections_.at(connection);
 }
 
-void MessageManager::ReceiveMessage(std::unique_ptr<Message> message, 
+void MessageManager::ReceiveMessage(std::unique_ptr<Message> message,
         std::weak_ptr<mio::Connection> connection) {
     ConnectionId connection_id = AddConnection(connection);
     DispatchMessage(std::move(message), connection_id);
@@ -46,7 +46,7 @@ void MessageManager::DispatchMessage(std::unique_ptr<Message> message, Connectio
         }
     } else {
         // incorrect message type
-        std::cerr << "Incorrect message\n"; 
+        std::cerr << "Incorrect message\n";
     }
 }
 

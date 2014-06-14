@@ -1,8 +1,7 @@
-#include "client/gamer.h"
-
 #include <iostream>
 #include <string>
 
+#include "client/gamer.h"
 #include "strategies/strategies.h"
 
 enum class StrategyType

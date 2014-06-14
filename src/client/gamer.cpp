@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 #include "ab/strategy_interface.h"
-#include "protocol/parse_protocol.h"
+#include "protocol/protocol.h"
 
 ab::ClientIO::ClientIO()
 {

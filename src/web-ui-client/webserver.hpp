@@ -11,7 +11,7 @@
 #include <fstream>
 #include <functional>
 
-#include "protocol/parse_protocol.h"
+#include "protocol/protocol.h"
 
 struct WebServerOptions {
   uint16_t listen_port = 8080;
@@ -124,7 +124,7 @@ struct HttpResponse {
 
 struct WebServer {
   WebServerOptions options;
-  
+
   ThreadPool worker_pool;
   Socket listen_socket;
 
@@ -161,7 +161,7 @@ class ViewerClient {
   ab::FieldState field;
   bool have_field;
   std::mutex field_mutex;
-  
+
   Socket socket;
 
   ErrorValue handshake();

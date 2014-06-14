@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "mio/connection.hpp"
-#include "protocol/parse_protocol.h"
+#include "protocol/protocol.h"
 
 #include "game_server.hpp"
 
@@ -13,7 +13,7 @@ class MessageManager {
 private:
     std::vector<std::weak_ptr<mio::Connection>> connections_;
     std::mutex connection_mutex_;
-    std::weak_ptr<ObserversManager> observers_manager_; 
+    std::weak_ptr<ObserversManager> observers_manager_;
     std::weak_ptr<GameStateManager> game_state_manager_;
 
     void DispatchMessage(std::unique_ptr<Message> message, ConnectionId connection_id);
@@ -27,11 +27,11 @@ public:
         observers_manager_(observers_manager)
         {}
 
-    void ReceiveMessage(std::unique_ptr<Message> message, 
+    void ReceiveMessage(std::unique_ptr<Message> message,
             std::weak_ptr<mio::Connection> connection);
 
     void SendMessage(const Message &message, ConnectionId connection_id);
-    
+
     void SetGameStateManager(std::weak_ptr<GameStateManager> game_state_manager) {
         game_state_manager_ = game_state_manager;
     }
