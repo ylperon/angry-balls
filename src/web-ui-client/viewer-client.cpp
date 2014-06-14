@@ -9,12 +9,14 @@
 #include <string>
 
 #include <unistd.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 
 #include "webserver.hpp"
+
+#include "mac_os_compatibility.h"
 
 using std::string;
 using std::runtime_error;
@@ -110,7 +112,7 @@ ErrorValue ViewerClient::get_next_field_state(bool& should_continue) {
   if (!msg) {
     return ErrorValue::error("Unsuccessful parse");
   }
-  if (!((msg->type == ab::MessageType::kFieldStateMessage) || 
+  if (!((msg->type == ab::MessageType::kFieldStateMessage) ||
         (msg->type == ab::MessageType::kFinishMessage)))  {
     return ErrorValue::error("Bad message type: " + ab::ToString(msg->type));
   }
@@ -120,7 +122,7 @@ ErrorValue ViewerClient::get_next_field_state(bool& should_continue) {
     return ErrorValue::ok();
   }
   unique_ptr<ab::FieldStateMessage> resp_msg(dynamic_cast<ab::FieldStateMessage*>(msg.release()));
-  
+
   // cerr << "parsed msg" << endl;
   std::unique_lock<std::mutex> lock(field_mutex);
   field = resp_msg->field_state;
@@ -189,7 +191,7 @@ ErrorValue connect_to_host(Socket& socket, const string& hostname, uint16_t port
   if (!err.success) {
     return err;
   }
-  
+
   socket.Set(tmp_socket.Disown());
 
   return ErrorValue::ok();

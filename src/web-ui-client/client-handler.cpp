@@ -9,12 +9,14 @@
 #include <string>
 
 #include <unistd.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 
 #include "webserver.hpp"
+
+#include "mac_os_compatibility.h"
 
 using std::string;
 using std::runtime_error;
@@ -55,13 +57,13 @@ void ClientHandler::serve() {
   }
   const HttpResponse& response = handler(parsed_request);
   vector<unsigned char> serialized_response = response.serialize();
-  
+
   err = send_http_response(serialized_response);
   if (!err.success) {
     cerr << "Error sending response: " << err.message << endl;
     return;
   }
-  
+
   // if (!err.success) {
   //   cerr << "Error sending request: " << err.message << endl;
   //   try_to_report_error_to_client(500, err);
