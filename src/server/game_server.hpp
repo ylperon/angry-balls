@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace ab {
 
 using ConnectionId = int;
@@ -9,10 +11,10 @@ class MessageManager;
 class GameStateManager;
 
 struct GameConfig {
-    int min_players_count;
-    int max_players_count;
-    int max_states_count;
-    int time_delta;
+    size_t min_players_count;
+    size_t max_players_count;
+    size_t max_states_count;
+    size_t time_delta;
     double max_velocity;
     double coin_probability;
     double player_radius;

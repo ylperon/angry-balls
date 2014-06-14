@@ -28,7 +28,7 @@ public:
 
 class Writer {
 public:
-    virtual void write(Buffer buffer) {}
+    virtual void write(Buffer /*buffer*/) {}
     virtual ~Writer() {}
 };
 

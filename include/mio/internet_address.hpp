@@ -20,12 +20,12 @@ public:
         address.sin_addr.s_addr = inet_addr(ip.c_str());
         memset(address.sin_zero, '\0', sizeof address.sin_zero);
         return InternetAddress(*((sockaddr *) &address));
-    } 
-    
+    }
+
     static InternetAddress getAddressByHostname(std::string hostname, int port = WEB_PORT) {
         struct sockaddr_in address;
         address.sin_family = AF_INET;
-        address.sin_port = htons(WEB_PORT);
+        address.sin_port = htons(port);
 
         struct hostent *h = gethostbyname(hostname.c_str());
         if (!h) {
