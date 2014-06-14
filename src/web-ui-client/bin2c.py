@@ -20,10 +20,11 @@ if __name__ == "__main__":
     except IndexError:
         print "Usage: %s <filename> <varname>" % sys.argv[0]
         raise SystemExit
-    
+
     contentFile = open(filename, "rb");
 
-    print "unsigned char %s[] = {" % (varname,),
+    print '#pragma once'
+    print "static unsigned char %s[] = {" % (varname,),
 
     while True:
         byte = contentFile.read(1)

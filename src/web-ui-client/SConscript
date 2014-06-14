@@ -1,0 +1,16 @@
+Import('env')
+
+cpp_files = ['client-handler.cpp',
+             'error-value.cpp',
+             'handlers.cpp',
+             'http.cpp',
+             'socket.cpp',
+             'thread-pool.cpp',
+             'viewer-client.cpp',
+             'webserver.cpp',
+             'main.cpp'
+            ]
+
+env.Program(target = 'viewer-webserver',
+            source = cpp_files,
+           )

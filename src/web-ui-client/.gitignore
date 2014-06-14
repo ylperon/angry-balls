@@ -1,6 +1,6 @@
-app-js-content.cpp
-index-html-content.cpp
-jquery-js-content.cpp
+app-js-content.h
+index-html-content.h
+jquery-js-content.h
 
 ui-webserver
 ui-webserver.asan
