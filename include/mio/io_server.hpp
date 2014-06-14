@@ -21,7 +21,7 @@
 namespace mio {
 
 struct ServerConfig {
-    std::string address;    
+    std::string address;
     int port;
 
     ServerConfig(int port = 8992, std::string address = "127.0.0.1") :
@@ -75,9 +75,9 @@ public:
         }
 
         bool input() {
-            return (event_->events & EPOLLIN);    
+            return (event_->events & EPOLLIN);
         }
-    
+
         template<typename T>
         T getData() {
             assert(sizeof(T) <= sizeof(event_->data.u64));
@@ -99,7 +99,7 @@ public:
         EpollEvent operator *() const {
             return EpollEvent(event_seek_, epoll_socket_);
         }
-    
+
         EpollEventIterator &operator ++() {
             event_seek_++;
             return *this;
@@ -111,9 +111,9 @@ public:
     };
 
     void getReadyDescriptors() {
-        events_ready_count_ = epoll_wait(epoll_socket_.getDescriptor(), 
-                events_, 
-                MAX_EVENTS, 
+        events_ready_count_ = epoll_wait(epoll_socket_.getDescriptor(),
+                events_,
+                MAX_EVENTS,
                 -1);
     }
 
@@ -122,7 +122,7 @@ public:
     }
 
     EpollEventIterator end() {
-        return EpollEventIterator(events_ + events_ready_count_, epoll_socket_.getDescriptor()); 
+        return EpollEventIterator(events_ + events_ready_count_, epoll_socket_.getDescriptor());
     }
 
     EpollDescriptorManager() :
@@ -143,9 +143,9 @@ public:
         event.events |= EPOLLOUT;
         event.events |= EPOLLRDHUP;
 
-        auto result = epoll_ctl(epoll_socket_.getDescriptor(), 
-                EPOLL_CTL_ADD, 
-                fd, 
+        auto result = epoll_ctl(epoll_socket_.getDescriptor(),
+                EPOLL_CTL_ADD,
+                fd,
                 &event);
 
         if (result == -1) {
@@ -160,7 +160,7 @@ private:
     DescriptorManager socket_manager_;
 
     std::list<std::shared_ptr<Connection>> connections_;
-    typedef std::list<std::shared_ptr<Connection>>::iterator ConnectionIter;
+    using ConnectionIter = std::list<std::shared_ptr<Connection>>::iterator;
     std::atomic<bool> stop_;
 
 public:
@@ -174,16 +174,16 @@ public:
     void closeConnection(ConnectionIter connection) {
         std::shared_ptr<Connection> inner = *connection;
         (*connection)->onClose();
-        connections_.erase(connection); 
+        connections_.erase(connection);
     }
 
     IOServer() :
         connections_(),
         stop_(false)
-        {} 
- 
+        {}
+
     void eventLoop() {
-        while (!stop_) { 
+        while (!stop_) {
             socket_manager_.getReadyDescriptors();
             for (auto event: socket_manager_) {
                 auto connection = event.template getData<ConnectionIter>();

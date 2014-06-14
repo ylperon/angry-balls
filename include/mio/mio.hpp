@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <memory>
 #include <utility>
@@ -10,10 +10,10 @@
 
 namespace mio {
 
-typedef std::vector<char> BufferVector;
-typedef std::shared_ptr<BufferVector> Buffer;
+using BufferVector = std::vector<char>;
+using Buffer = std::shared_ptr<BufferVector>;
 
-template<typename... Args> 
+template<typename... Args>
 Buffer createBuffer(Args... args) {
     return std::make_shared<BufferVector>(args...);
 }
@@ -57,12 +57,12 @@ public:
 
     std::shared_ptr<Connection> createConnection(std::shared_ptr<Socket> socket) {
         auto connection = createConnectionImpl(socket);
-    
+
         auto conn_m = connection_manager_.lock();
         if (conn_m) {
-            conn_m->addConnection(connection); 
+            conn_m->addConnection(connection);
         }
-    
+
         return connection;
     }
 };

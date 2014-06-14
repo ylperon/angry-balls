@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include "socket.hpp"
 
@@ -12,7 +12,7 @@ private:
     static constexpr size_t BUFFER_SIZE = 4096;
 
 public:
-    AsyncReader(std::weak_ptr<Socket> socket, 
+    AsyncReader(std::weak_ptr<Socket> socket,
             std::shared_ptr<InputProtocol> protocol) :
         socket_(socket),
         protocol_(protocol)
@@ -25,7 +25,7 @@ public:
         if (!socket) {
             return true;
         }
-    
+
         while (true) {
             memset(buffer, 0, BUFFER_SIZE);
 
@@ -55,9 +55,9 @@ private:
     std::shared_ptr<OutputProtocol> protocol_;
 
 public:
-    typedef Buffer OutputBuffer;
+    using OutputBuffer = Buffer;
 
-    AsyncWriter(std::weak_ptr<Socket> socket, 
+    AsyncWriter(std::weak_ptr<Socket> socket,
             std::shared_ptr<OutputProtocol> protocol) :
         socket_(socket),
         buffer_(createBuffer()),
@@ -73,12 +73,12 @@ public:
         if (!socket) {
             return;
         }
-    
+
         auto result = socket->write(buffer_->data(), buffer_->size());
         if (result < 0) {
             if (result == -EWOULDBLOCK || result == -EAGAIN) {
                 // remembered this buffer, will try to put it next time
-                return; 
+                return;
             }
             throw std::runtime_error("write failed");
         }

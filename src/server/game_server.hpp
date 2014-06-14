@@ -2,7 +2,7 @@
 
 namespace ab {
 
-typedef int ConnectionId;
+using ConnectionId = int;
 
 class ObserversManager;
 class MessageManager;

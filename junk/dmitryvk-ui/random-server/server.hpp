@@ -56,7 +56,7 @@ public:
 
 class ThreadPool {
 public:
-  typedef std::function<void()> WorkerFunction;
+  using WorkerFunction = std::function<void()>;
 
   ThreadPool(unsigned num_workers = 4 * std::thread::hardware_concurrency());
   ~ThreadPool();
@@ -89,7 +89,7 @@ struct Url {
 
 struct Server {
   ServerOptions options;
-  
+
   ThreadPool worker_pool;
   Socket listen_socket;
 
