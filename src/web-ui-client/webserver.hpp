@@ -8,7 +8,6 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
-#include <fstream>
 #include <functional>
 
 #include "protocol/protocol.h"
@@ -191,4 +190,4 @@ class ViewerClient
 };
 
 ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr);
-const std::string ip4_to_string(uint32_t addr);
+std::string ip4_to_string(uint32_t addr);

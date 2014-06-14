@@ -4,8 +4,6 @@
 #include <sstream>
 #include <memory>
 #include <functional>
-#include <condition_variable>
-#include <chrono>
 #include <string>
 
 #include <unistd.h>
@@ -15,17 +13,6 @@
 #include <netdb.h>
 
 #include "webserver.hpp"
-
-using std::string;
-using std::runtime_error;
-using std::strerror;
-using std::cerr;
-using std::endl;
-using std::shared_ptr;
-using std::vector;
-using std::ostringstream;
-using std::make_shared;
-using std::ref;
 
 WebServer::WebServer(const WebServerOptions& options)
     : options(options)
@@ -38,10 +25,10 @@ int WebServer::run()
     ErrorValue err;
     err = start_listening();
     if (!err.success) {
-        cerr << "Could not start: " << err.message << endl;
+        std::cerr << "Could not start: " << err.message << std::endl;
         return 1;
     } else {
-        cerr << "Listening on port " << options.listen_port << endl;
+        std::cerr << "Listening on port " << options.listen_port << std::endl;
         accept_loop();
         return 0;
     }
@@ -128,14 +115,14 @@ ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddr
   return ErrorValue::ok();
 }
 
-const string ip4_to_string(uint32_t addr)
+std::string ip4_to_string(uint32_t addr)
 {
   static const unsigned octets[4] = {static_cast<unsigned>((addr >> 24) & 0xFF),
                                      static_cast<unsigned>((addr >> 16) & 0xFF),
                                      static_cast<unsigned>((addr >> 8) & 0xFF),
                                      static_cast<unsigned>((addr) & 0xFF)
                                     };
-  ostringstream stream;
+  std::ostringstream stream;
   stream << octets[0] << "." << octets[1] << "." << octets[2] << "." << octets[3];
   return stream.str();
 }
@@ -147,14 +134,17 @@ void WebServer::accept_loop()
     SocketAddress new_client_addr;
     ErrorValue err = socket_accept(listen_socket, new_client_socket, new_client_addr);
     if (!err.success) {
-      cerr << "In accept: " << err.message << endl;
+        std::cerr << "In accept: " << err.message << std::endl;
     } else {
       // std::cerr << "Accepted connection from "
       //           << ip4_to_string(new_client_addr.ip_addr)
       //           << ":" << new_client_addr.tcp_port
       //           << std::endl;
-      shared_ptr<ClientHandler> client_handler =
-          make_shared<ClientHandler>(ref(*this), new_client_socket.Disown(), new_client_addr);
+        std::shared_ptr<ClientHandler> client_handler =
+          std::make_shared<ClientHandler>(std::ref(*this),
+                                          new_client_socket.Disown(),
+                                          new_client_addr
+                                         );
       worker_pool.enqueue([client_handler] { client_handler->serve(); });
     }
   }
