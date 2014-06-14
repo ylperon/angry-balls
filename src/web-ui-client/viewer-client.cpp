@@ -2,10 +2,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <sstream>
-#include <memory>
 #include <functional>
-#include <condition_variable>
-#include <chrono>
 #include <string>
 
 #include <unistd.h>
@@ -20,217 +17,219 @@
 
 namespace {
 
-ErrorValue connect_socket(Socket& socket, const std::string& hostname, uint16_t port) {
-  int fd = ::socket(AF_INET, SOCK_STREAM, 0);
-  if (fd < 0) {
-    return ErrorValue::error_from_errno("Failed to open socket: ");
-  }
-  socket.Set(fd);
-  addrinfo gni_hints;
-  memset(&gni_hints, 0, sizeof(gni_hints));
-  gni_hints.ai_family = AF_INET;
-  gni_hints.ai_socktype = SOCK_STREAM;
-  gni_hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
-  struct addrinfo* addr;
-  int rc = getaddrinfo(hostname.c_str(), NULL, &gni_hints, &addr);
-  if (rc != 0) {
-      std::ostringstream msg_stream;
-    msg_stream << "Failed to do hostname lookup for " << hostname << ": ";
-    msg_stream << gai_strerror(rc);
-    return ErrorValue::error(msg_stream.str());
-  }
+ErrorValue connect_socket(Socket& socket, const std::string& hostname, uint16_t port)
+{
+    int fd = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+        return ErrorValue::error_from_errno("Failed to open socket: ");
 
-  if (addr == nullptr) {
-    return ErrorValue::error("Failed to do hostname lookup: no addressed returned");
-  }
+    socket.Set(fd);
+    addrinfo gni_hints;
+    memset(&gni_hints, 0, sizeof(gni_hints));
+    gni_hints.ai_family = AF_INET;
+    gni_hints.ai_socktype = SOCK_STREAM;
+    gni_hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
+    struct addrinfo* addr;
+    int rc = getaddrinfo(hostname.c_str(), NULL, &gni_hints, &addr);
+    if (rc != 0) {
+        std::ostringstream msg_stream;
+        msg_stream << "Failed to do hostname lookup for " << hostname << ": ";
+        msg_stream << gai_strerror(rc);
+        return ErrorValue::error(msg_stream.str());
+    }
 
-  struct sockaddr_in socket_addr;
-  memcpy(&socket_addr, addr->ai_addr, sizeof(socket_addr));
-  freeaddrinfo(addr);
-  socket_addr.sin_port = htons(port);
+    if (nullptr == addr)
+        return ErrorValue::error("Failed to do hostname lookup: no addressed returned");
 
-  // cerr << "got hostname addr: " << ip4_to_string(ntohl(socket_addr.sin_addr.s_addr)) << endl;
+    struct sockaddr_in socket_addr;
+    memcpy(&socket_addr, addr->ai_addr, sizeof(socket_addr));
+    freeaddrinfo(addr);
+    socket_addr.sin_port = htons(port);
 
-  // cerr << "connecting" << endl;
+    // std::cerr << "got hostname addr: "
+    //           << ip4_to_string(ntohl(socket_addr.sin_addr.s_addr))
+    //           << std::endl;
 
-  if (connect(socket.GetFd(), reinterpret_cast<sockaddr*>(&socket_addr), sizeof(socket_addr)) != 0) {
-    return ErrorValue::error_from_errno("Failed to connect to host: ");
-  }
+    // std::cerr << "connecting" << std::endl;
 
-  // cerr << "got connection" << endl;
+    if (0 != connect(socket.GetFd(), reinterpret_cast<sockaddr*>(&socket_addr),
+                sizeof(socket_addr)))
+    {
+        return ErrorValue::error_from_errno("Failed to connect to host: ");
+    }
 
-  return ErrorValue::ok();
+    // std::cerr << "got connection" << std::endl;
+
+    return ErrorValue::ok();
 }
 
-ErrorValue recv_buf(int fd, unsigned char* data, size_t length) {
-  size_t read_pos = 0;
-  while (read_pos < length) {
-    ssize_t rc = read(fd, data + read_pos, length);
-    if (rc == 0) {
-      return ErrorValue::error("Client closed connection before sending request");
+ErrorValue recv_buf(int fd, unsigned char* data, size_t length)
+{
+    size_t read_pos = 0;
+    while (read_pos < length) {
+        ssize_t rc = read(fd, data + read_pos, length);
+        if (0 == rc)
+            return ErrorValue::error("Client closed connection before sending request");
+
+        if (rc < 0 && errno != EINTR)
+            return ErrorValue::error_from_errno("Error reading request: ");
+
+        read_pos += rc;
     }
-    if (rc < 0 && errno != EINTR) {
-      return ErrorValue::error_from_errno("Error reading request: ");
-    }
-    read_pos += rc;
-  }
-  return ErrorValue::ok();
+    return ErrorValue::ok();
 }
 
-ErrorValue send_buf(int fd, const unsigned char* data, size_t length) {
-  size_t written = 0;
-  while (written < length) {
-    ssize_t rc = send(fd,
-                      data + written,
-                      length - written,
-                      MSG_NOSIGNAL);
-    if (rc == 0) {
-      return ErrorValue::error("client closed connection");
-    } else if (rc == -1 && errno != EINTR) {
-      return ErrorValue::error_from_errno("error sending message: ");
+ErrorValue send_buf(int fd, const unsigned char* data, size_t length)
+{
+    size_t written = 0;
+    while (written < length) {
+        ssize_t rc = send(fd, data + written, length - written, MSG_NOSIGNAL);
+        if (rc == 0)
+            return ErrorValue::error("client closed connection");
+        else if (rc == -1 && errno != EINTR)
+            return ErrorValue::error_from_errno("error sending message: ");
+
+        written += rc;
     }
-    written += rc;
-  }
-  return ErrorValue::ok();
+    return ErrorValue::ok();
 }
 
-ErrorValue receive_full_message(const Socket& socket, std::vector<unsigned char>& buf) {
-  size_t message_length;
-  {
+ErrorValue receive_full_message(const Socket& socket, std::vector<unsigned char>& buf)
+{
+    size_t message_length;
     union { uint32_t int_value; unsigned char buf_value[4]; } size_buf;
-    ErrorValue err = recv_buf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
-    if (!err.success) {
-      return err;
-    }
+    ErrorValue err_one = recv_buf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
+    if (!err_one.success)
+        return err_one;
+
     message_length = size_buf.int_value;
-  }
-  //cerr << "message_length = " << message_length << endl;
-  {
+    //std::cerr << "message_length = " << message_length << std::endl;
     buf.clear();
     buf.resize(message_length);
-    ErrorValue err = recv_buf(socket.GetFd(), buf.data(), message_length);
-    if (!err.success) {
-      return err;
-    }
-  }
-  // cerr << "received: '" << std::string(buf.begin(), buf.end()) << "'" << endl;
-  return ErrorValue::ok();
+    ErrorValue err_two = recv_buf(socket.GetFd(), buf.data(), message_length);
+    if (!err_two.success)
+        return err_two;
+
+    // std::cerr << "received: '" << std::string(buf.begin(), buf.end()) << "'" << std::endl;
+    return ErrorValue::ok();
 }
 
-ErrorValue send_full_message(const Socket& socket, const std::vector<unsigned char>& buf) {
-  {
+ErrorValue send_full_message(const Socket& socket, const std::vector<unsigned char>& buf)
+{
     union { uint32_t int_value; unsigned char buf_value[4]; } size_buf;
     size_buf.int_value = buf.size();
-    ErrorValue err = send_buf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
-    if (!err.success) {
-      return err;
-    }
-  }
-  {
-    ErrorValue err = send_buf(socket.GetFd(), buf.data(), buf.size());
-    if (!err.success) {
-      return err;
-    }
-  }
-  return ErrorValue::ok();
+    ErrorValue err_one = send_buf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
+    if (!err_one.success)
+        return err_one;
+
+    ErrorValue err_two = send_buf(socket.GetFd(), buf.data(), buf.size());
+    if (!err_two.success)
+        return err_two;
+
+    return ErrorValue::ok();
 }
 
 } // namespace
 
-ViewerClient::ViewerClient(const WebServerOptions& options): options(options), have_field(false) { }
+ViewerClient::ViewerClient(const WebServerOptions& options)
+    : options(options)
+    , have_field(false)
+{
+}
 
-int ViewerClient::run() {
-  ErrorValue err = connect_socket(socket, options.game_server_host, options.game_server_port);
-  if (!err.success) {
-      std::cerr << "Error connecting to game server: " << err.message << std::endl;
-    return 1;
-  }
-  err = handshake();
-  if (!err.success) {
-      std::cerr << "Error during handshake: " << err.message << std::endl;
-    return 1;
-  }
-  while (true) {
-    bool should_continue = false;
-    err = get_next_field_state(should_continue);
+int ViewerClient::run()
+{
+    ErrorValue err = connect_socket(socket, options.game_server_host, options.game_server_port);
     if (!err.success) {
-        std::cerr << "Error getting field state: " << err.message << std::endl;
-      return 1;
+        std::cerr << "Error connecting to game server: " << err.message << std::endl;
+        return 1;
     }
-    if (!should_continue) {
-      break;
+    err = handshake();
+    if (!err.success) {
+        std::cerr << "Error during handshake: " << err.message << std::endl;
+        return 1;
     }
-  }
+    while (true) {
+        bool should_continue = false;
+        err = get_next_field_state(should_continue);
+        if (!err.success) {
+            std::cerr << "Error getting field state: " << err.message << std::endl;
+            return 1;
+        }
+        if (!should_continue)
+            break;
+    }
 
-  return 0;
+    return 0;
 }
 
 ErrorValue ViewerClient::handshake() {
-  ErrorValue err;
-  std::vector<unsigned char> buf;
-  {
+    ErrorValue err;
+    std::vector<unsigned char> buf;
     ab::ViewerSubscribeRequestMessage req_msg;
     std::string req_msg_json = ab::BuildJsonMessage(&req_msg);
     buf.assign(req_msg_json.begin(), req_msg_json.end());
     err = send_full_message(socket, buf);
-    if (!err.success) {
-      return err;
-    }
-  }
-  {
+    if (!err.success)
+        return err;
+
     err = receive_full_message(socket, buf);
-    if (!err.success) {
-      return err;
-    }
+    if (!err.success)
+        return err;
+
     std::unique_ptr<ab::Message> msg = ab::ParseJsonMessage(std::string(buf.begin(), buf.end()));
-    if (!msg) {
-      return ErrorValue::error("Unsuccessful parse");
-    }
-    if (msg->type != ab::MessageType::kViewerSubscribeResultMessage) {
-      return ErrorValue::error("Bad handshake response type: " + ab::ToString(msg->type));
-    }
-    std::unique_ptr<ab::ViewerSubscribeResultMessage> resp_msg(dynamic_cast<ab::ViewerSubscribeResultMessage*>(msg.release()));
-    if (!resp_msg->result) {
-      return ErrorValue::error("Server refused to accept viewer");
-    }
-    std::cerr << "Connected to game server as viewer with id = " << resp_msg->viewer_id << std::endl;
-  }
+    if (!msg)
+        return ErrorValue::error("Unsuccessful parse");
 
-  return ErrorValue::ok();
-}
+    if (ab::kViewerSubscribeResultMessage != msg->type)
+        return ErrorValue::error("Bad handshake response type: " + ab::ToString(msg->type));
 
-ErrorValue ViewerClient::get_next_field_state(bool& should_continue) {
-    std::vector<unsigned char> buf;
-  // cerr << "receiving next msg" << endl;
-  ErrorValue err = receive_full_message(socket, buf);
-  if (!err.success) {
-    return err;
-  }
-  std::unique_ptr<ab::Message> msg = ab::ParseJsonMessage(std::string(buf.begin(), buf.end()));
-  if (!msg) {
-    return ErrorValue::error("Unsuccessful parse");
-  }
-  if (!((msg->type == ab::MessageType::kFieldStateMessage) ||
-        (msg->type == ab::MessageType::kFinishMessage)))  {
-    return ErrorValue::error("Bad message type: " + ab::ToString(msg->type));
-  }
-  if (msg->type == ab::MessageType::kFinishMessage) {
-      std::cerr << "Finish game\n";
-    should_continue = false;
+    std::unique_ptr<ab::ViewerSubscribeResultMessage> resp_msg(
+            dynamic_cast<ab::ViewerSubscribeResultMessage*>(msg.release()));
+    if (!resp_msg->result)
+        return ErrorValue::error("Server refused to accept viewer");
+
+    std::cerr << "Connected to game server as viewer with id = "
+              << resp_msg->viewer_id
+              << std::endl;
+
     return ErrorValue::ok();
-  }
-  std::unique_ptr<ab::FieldStateMessage> resp_msg(dynamic_cast<ab::FieldStateMessage*>(msg.release()));
-
-  // cerr << "parsed msg" << endl;
-  std::unique_lock<std::mutex> lock(field_mutex);
-  field = resp_msg->field_state;
-  have_field = true;
-  should_continue = true;
-  return ErrorValue::ok();
 }
 
-void ViewerClient::get_field(ab::FieldState& field, bool& have_field) {
-  std::unique_lock<std::mutex> lock(field_mutex);
-  field = this->field;
-  have_field = this->have_field;
+ErrorValue ViewerClient::get_next_field_state(bool& should_continue)
+{
+    std::vector<unsigned char> buf;
+    // std::cerr << "receiving next msg" << std::endl;
+    ErrorValue err = receive_full_message(socket, buf);
+    if (!err.success)
+        return err;
+
+    std::unique_ptr<ab::Message> msg = ab::ParseJsonMessage(std::string(buf.begin(), buf.end()));
+    if (!msg)
+        return ErrorValue::error("Unsuccessful parse");
+
+    if (ab::kFieldStateMessage != msg->type && ab::kFinishMessage != msg->type)
+        return ErrorValue::error("Bad message type: " + ab::ToString(msg->type));
+
+    if (ab::kFinishMessage == msg->type) {
+        std::cerr << "Finish game\n";
+        should_continue = false;
+        return ErrorValue::ok();
+    }
+    std::unique_ptr<ab::FieldStateMessage> resp_msg(
+            dynamic_cast<ab::FieldStateMessage*>(msg.release()));
+
+    // std::cerr << "parsed msg" << std::endl;
+    std::unique_lock<std::mutex> lock(field_mutex);
+    field = resp_msg->field_state;
+    have_field = true;
+    should_continue = true;
+    return ErrorValue::ok();
+}
+
+void ViewerClient::get_field(ab::FieldState& field, bool& have_field)
+{
+    std::unique_lock<std::mutex> lock(field_mutex);
+    field = this->field;
+    have_field = this->have_field;
 }
