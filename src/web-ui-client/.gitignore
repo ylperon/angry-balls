@@ -1,3 +1,7 @@
+app-js-content.cpp
+index-html-content.cpp
+jquery-js-content.cpp
+
 ui-webserver
 ui-webserver.asan
 ui-webserver.tsan
