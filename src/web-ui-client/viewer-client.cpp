@@ -53,7 +53,7 @@ int ViewerClient::run() {
     return 1;
   }
   while (true) {
-    bool should_continue;
+    bool should_continue = false;
     err = get_next_field_state(should_continue);
     if (!err.success) {
       cerr << "Error getting field state: " << err.message << endl;
