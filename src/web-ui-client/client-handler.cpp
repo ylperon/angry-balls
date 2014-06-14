@@ -1,3 +1,5 @@
+#include "webserver.hpp"
+
 #include <iostream>
 #include <stdexcept>
 #include <cstring>
@@ -14,178 +16,163 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#include "webserver.hpp"
-
 #include "mac_os_compatibility.h"
 
-using std::string;
-using std::runtime_error;
-using std::strerror;
-using std::cerr;
-using std::endl;
-using std::shared_ptr;
-using std::vector;
-using std::ostringstream;
-using std::to_string;
-using std::logic_error;
-using std::stoul;
-
-ClientHandler::ClientHandler(WebServer& server, int fd, SocketAddress client_addr):
-  server(server),
-  socket(fd),
-  client_addr(client_addr) {
+ClientHandler::ClientHandler(WebServer& server, int fd, SocketAddress client_addr)
+    : server(server)
+    , socket(fd)
+    , client_addr(client_addr)
+{
 }
 
-void ClientHandler::serve() {
-  ErrorValue err = read_http_request(client_request);
-  if (!err.success) {
-    cerr << "Error serving client: " << err.message << endl;
-    return;
-  }
-  // cerr << "got request (" << request.size() << ") bytes" << endl;
-  // {
-  //   string str(reinterpret_cast<char*>(client_request.data()), client_request.size());
-  //   cerr << "body: " << str << endl;
-  // }
-  const HttpRequest& parsed_request = HttpRequest::parse(client_request);
-  auto it = server.url_handlers.find(parsed_request.url.absolute_path);
-  std::function<const HttpResponse(const HttpRequest&)> handler;
-  if (it == server.url_handlers.end()) {
-    handler = WebServer::default_http_handler;
-  } else {
-    handler = it->second;
-  }
-  const HttpResponse& response = handler(parsed_request);
-  vector<unsigned char> serialized_response = response.serialize();
+void ClientHandler::serve()
+{
+    ErrorValue err = read_http_request(client_request);
+    if (!err.success) {
+        std::cerr << "Error serving client: " << err.message << std::endl;
+        return;
+    }
+    // std::cerr << "got request (" << request.size() << ") bytes" << std::endl;
+    // {
+    //   std::string str(reinterpret_cast<char*>(client_request.data()), client_request.size());
+    //   std::cerr << "body: " << str << std::endl;
+    // }
+    const HttpRequest& parsed_request = HttpRequest::parse(client_request);
+    auto it = server.url_handlers.find(parsed_request.url.absolute_path);
+    std::function<const HttpResponse(const HttpRequest&)> handler;
+    if (it == server.url_handlers.end())
+        handler = WebServer::default_http_handler;
+    else
+        handler = it->second;
 
-  err = send_http_response(serialized_response);
-  if (!err.success) {
-    cerr << "Error sending response: " << err.message << endl;
-    return;
-  }
+    const HttpResponse& response = handler(parsed_request);
+    std::vector<unsigned char> serialized_response = response.serialize();
 
-  // if (!err.success) {
-  //   cerr << "Error sending request: " << err.message << endl;
-  //   try_to_report_error_to_client(500, err);
-  //   return;
-  // }
-  return;
+    err = send_http_response(serialized_response);
+    if (!err.success) {
+        std::cerr << "Error sending response: " << err.message << std::endl;
+        return;
+    }
+
+    // if (!err.success) {
+    //   std::cerr << "Error sending request: " << err.message << std::endl;
+    //   try_to_report_error_to_client(500, err);
+    //   return;
+    // }
+    return;
 }
 
-enum DfaStateForHttpRequest {
-  initial = 0,
-  seen_cr = 1,
-  seen_crlf = 2,
-  seen_crlfcr = 3,
-  seen_crlfcrlf = 4
+enum DfaStateForHttpRequest : int
+{
+    initial = 0,
+    seen_cr = 1,
+    seen_crlf = 2,
+    seen_crlfcr = 3,
+    seen_crlfcrlf = 4
 };
 
-DfaStateForHttpRequest
-DfaStateForHttpRequest_next_state(DfaStateForHttpRequest state,
-                                  unsigned char next_char) {
-  switch (state) {
-  case DfaStateForHttpRequest::initial: {
-    if (next_char == '\r') {
-      return DfaStateForHttpRequest::seen_cr;
-    } else {
-      return DfaStateForHttpRequest::initial;
+DfaStateForHttpRequest DfaStateForHttpRequest_next_state(DfaStateForHttpRequest state,
+                                                         unsigned char next_char)
+{
+    switch (state) {
+        case DfaStateForHttpRequest::initial: {
+            if ('\r' == next_char)
+                return DfaStateForHttpRequest::seen_cr;
+            else
+                return DfaStateForHttpRequest::initial;
+        } case DfaStateForHttpRequest::seen_cr: {
+            if ('\r' == next_char)
+                return DfaStateForHttpRequest::seen_cr;
+            else if ('\n' == next_char)
+                return DfaStateForHttpRequest::seen_crlf;
+            else
+                return DfaStateForHttpRequest::initial;
+        } case DfaStateForHttpRequest::seen_crlf: {
+            if ('\r' == next_char)
+                return DfaStateForHttpRequest::seen_crlfcr;
+            else if ('\n' == next_char)
+                return DfaStateForHttpRequest::initial;
+            else
+                return DfaStateForHttpRequest::initial;
+        } case DfaStateForHttpRequest::seen_crlfcr: {
+            if ('\r' == next_char)
+                return DfaStateForHttpRequest::seen_cr;
+            else if ('\n' == next_char)
+                return DfaStateForHttpRequest::seen_crlfcrlf;
+            else
+                return DfaStateForHttpRequest::initial;
+        } case DfaStateForHttpRequest::seen_crlfcrlf: {
+            return DfaStateForHttpRequest::seen_crlfcrlf;
+        } default: {
+            throw std::logic_error("DfaStateForHttpRequest_next_state: invalid state");
+        }
     }
-  }
-  case DfaStateForHttpRequest::seen_cr: {
-    if (next_char == '\r') {
-      return DfaStateForHttpRequest::seen_cr;
-    } else if (next_char == '\n') {
-      return DfaStateForHttpRequest::seen_crlf;
-    } else {
-      return DfaStateForHttpRequest::initial;
-    }
-  }
-  case DfaStateForHttpRequest::seen_crlf: {
-    if (next_char == '\r') {
-      return DfaStateForHttpRequest::seen_crlfcr;
-    } else if (next_char == '\n') {
-      return DfaStateForHttpRequest::initial;
-    } else {
-      return DfaStateForHttpRequest::initial;
-    }
-  }
-  case DfaStateForHttpRequest::seen_crlfcr: {
-    if (next_char == '\r') {
-      return DfaStateForHttpRequest::seen_cr;
-    } else if (next_char == '\n') {
-      return DfaStateForHttpRequest::seen_crlfcrlf;
-    } else {
-      return DfaStateForHttpRequest::initial;
-    }
-  }
-  case DfaStateForHttpRequest::seen_crlfcrlf: {
-    return DfaStateForHttpRequest::seen_crlfcrlf;
-  }
-  default: throw logic_error("DfaStateForHttpRequest_next_state: invalid state");
-  }
 }
 
-ErrorValue ClientHandler::read_http_request(vector<unsigned char>& result) {
-  // cerr << "reading http request" << endl;
-  DfaStateForHttpRequest dfa = DfaStateForHttpRequest::initial;
-  result.clear();
-  vector<unsigned char> buf;
-  buf.resize(16384);
-  while (true) {
-    ssize_t rc = read(socket.GetFd(), buf.data(), buf.size());
-    if (rc == 0) {
-      return ErrorValue::error("Client closed connection before sending request");
+ErrorValue ClientHandler::read_http_request(std::vector<unsigned char>& result)
+{
+    // cerr << "reading http request" << endl;
+    DfaStateForHttpRequest dfa = DfaStateForHttpRequest::initial;
+    result.clear();
+    std::vector<unsigned char> buf;
+    buf.resize(16384);
+    while (true) {
+        ssize_t rc = read(socket.GetFd(), buf.data(), buf.size());
+        if (0 == rc)
+            return ErrorValue::error("Client closed connection before sending request");
+
+        if (rc < 0 && errno != EINTR)
+            return ErrorValue::error_from_errno("Error reading request: ");
+
+        size_t buf_length = static_cast<size_t>(rc);
+        for (unsigned int idx = 0; idx < buf_length; ++idx) {
+            dfa = DfaStateForHttpRequest_next_state(dfa, buf.at(idx));
+            if (dfa == DfaStateForHttpRequest::seen_crlfcrlf) {
+                size_t used_buf_length = idx + 1;
+                result.insert(result.end(), buf.begin(), buf.begin() + used_buf_length);
+                return ErrorValue::ok();
+            }
+        }
+        result.insert(result.end(), buf.begin(), buf.begin() + buf_length);
     }
-    if (rc < 0 && errno != EINTR) {
-      return ErrorValue::error_from_errno("Error reading request: ");
-    }
-    size_t buf_length = static_cast<size_t>(rc);
-    for (unsigned int idx = 0; idx < buf_length; ++idx) {
-      dfa = DfaStateForHttpRequest_next_state(dfa, buf.at(idx));
-      if (dfa == DfaStateForHttpRequest::seen_crlfcrlf) {
-        size_t used_buf_length = idx + 1;
-        result.insert(result.end(), buf.begin(), buf.begin() + used_buf_length);
-        return ErrorValue::ok();
-      }
-    }
-    result.insert(result.end(), buf.begin(), buf.begin() + buf_length);
-  }
 }
 
-void ClientHandler::try_to_report_error_to_client(unsigned status_code, const ErrorValue& value) {
-  ostringstream message_stream;
-  message_stream << "HTTP/1.0 " << status_code << " Error" << "\r\n"
-                 << "Content-Type: text/plain; charset:utf-8\r\n"
-                 << "Content-Length: " << (1 + value.message.length()) << "\r\n"
-                 << "\r\n"
-                 << value.message.c_str() << "\n";
-  string response_body = message_stream.str();
-  size_t written = 0;
-  while (written < response_body.length()) {
-    ssize_t rc = send(socket.GetFd(),
-                      response_body.c_str() + written,
-                      response_body.length() - written,
-                      MSG_NOSIGNAL);
-    if (rc == 0 || (rc == -1 && errno != EINTR)) {
-      return;
+void ClientHandler::try_to_report_error_to_client(unsigned status_code, const ErrorValue& value)
+{
+    std::ostringstream message_stream;
+    message_stream << "HTTP/1.0 " << status_code << " Error" << "\r\n"
+                   << "Content-Type: text/plain; charset:utf-8\r\n"
+                   << "Content-Length: " << (1 + value.message.length()) << "\r\n"
+                   << "\r\n"
+                   << value.message.c_str() << "\n";
+    std::string response_body = message_stream.str();
+    size_t written = 0;
+    while (written < response_body.length()) {
+        ssize_t rc = send(socket.GetFd(),
+                          response_body.c_str() + written,
+                          response_body.length() - written,
+                          MSG_NOSIGNAL);
+        if (0 == rc || (-1 == rc && errno != EINTR))
+            return;
+
+        written += rc;
     }
-    written += rc;
-  }
 }
 
-ErrorValue ClientHandler::send_http_response(const std::vector<unsigned char>& response) {
+ErrorValue ClientHandler::send_http_response(const std::vector<unsigned char>& response)
+{
   size_t written = 0;
   while (written < response.size()) {
     ssize_t rc = send(socket.GetFd(),
                       &response.at(0) + written,
                       response.size() - written,
                       MSG_NOSIGNAL);
-    if (rc == 0) {
+    if (0 == rc)
       return ErrorValue::error("Peer closed its connection");
-    }
-    if (rc == -1 && errno != EINTR) {
+
+    if (rc == -1 && errno != EINTR)
       return ErrorValue::error_from_errno("Error writing to client: ");
-    }
+
     written += rc;
   }
   return ErrorValue::ok();
