@@ -46,7 +46,7 @@ void ClientHandler::serve()
         handler = it->second;
 
     const HttpResponse& response = handler(parsed_request);
-    std::vector<unsigned char> serialized_response = response.serialize();
+    std::vector<unsigned char> serialized_response = response.Serialize();
 
     err = send_http_response(serialized_response);
     if (!err.success) {

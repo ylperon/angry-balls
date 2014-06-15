@@ -114,7 +114,7 @@ struct HttpResponse
     std::vector<HttpHeader> headers;
     std::vector<unsigned char> response_body;
 
-    std::vector<unsigned char> serialize() const;
+    std::vector<unsigned char> Serialize() const;
 };
 
 struct WebServer

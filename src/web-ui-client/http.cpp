@@ -101,7 +101,7 @@ HttpRequest HttpRequest::Parse(const std::vector<unsigned char>& body)
     return result;
 }
 
-std::vector<unsigned char> HttpResponse::serialize() const
+std::vector<unsigned char> HttpResponse::Serialize() const
 {
     std::ostringstream stream;
     stream << "HTTP/" << version << " " << status_code << " " << status_message << "\r\n";
