@@ -2,15 +2,10 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <cstring>
-#include <sstream>
 #include <string>
 
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 
 Socket::Socket()
     : has_fd_(false)
