@@ -118,7 +118,7 @@ struct WebServer
 {
     WebServerOptions options;
 
-    ThreadPool worker_pool;
+    ab::ThreadPool worker_pool;
     Socket listen_socket;
 
     std::unordered_map<std::string, std::function<const HttpResponse(const HttpRequest&)> >

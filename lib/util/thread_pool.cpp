@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-ThreadPool::ThreadPool(unsigned num_workers)
+ab::ThreadPool::ThreadPool(unsigned num_workers)
 {
     {
         // Should use lock to ensure memory fence before workers have started
@@ -16,12 +16,12 @@ ThreadPool::ThreadPool(unsigned num_workers)
         workers_.emplace_back(worker_thread_fn);
 }
 
-ThreadPool::~ThreadPool()
+ab::ThreadPool::~ThreadPool()
 {
     Shutdown();
 }
 
-void ThreadPool::Enqueue(WorkerFunction fn)
+void ab::ThreadPool::Enqueue(WorkerFunction fn)
 {
     {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -30,7 +30,7 @@ void ThreadPool::Enqueue(WorkerFunction fn)
     has_more_work_.notify_one();
 }
 
-bool ThreadPool::WorkerDequeue(WorkerFunction& result)
+bool ab::ThreadPool::WorkerDequeue(WorkerFunction& result)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     while (!should_quit_ && work_queue_.empty())
@@ -45,7 +45,7 @@ bool ThreadPool::WorkerDequeue(WorkerFunction& result)
     }
 }
 
-void ThreadPool::Run()
+void ab::ThreadPool::Run()
 {
     while (true) {
         try {
@@ -63,7 +63,7 @@ void ThreadPool::Run()
     }
 }
 
-void ThreadPool::Shutdown()
+void ab::ThreadPool::Shutdown()
 {
     {
         std::unique_lock<std::mutex> lock(mutex_);

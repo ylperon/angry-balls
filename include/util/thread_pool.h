@@ -5,6 +5,8 @@
 #include <functional>
 #include <thread>
 
+namespace ab {
+
 class ThreadPool
 {
 public:
@@ -26,3 +28,5 @@ private:
     std::mutex mutex_;
     std::condition_variable has_more_work_;
 };
+
+} // namespace ab
