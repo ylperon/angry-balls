@@ -12,17 +12,17 @@ public:
 
     ThreadPool(unsigned num_workers = 4 * std::thread::hardware_concurrency());
     ~ThreadPool();
-    void enqueue(WorkerFunction fn);
+    void Enqueue(WorkerFunction fn);
 
 private:
-    void shutdown();
-    void worker_func();
-    bool worker_dequeue(WorkerFunction&);
+    void Shutdown();
+    void Run();
+    bool WorkerDequeue(WorkerFunction&);
 
-    std::vector<std::thread> workers;
-    std::queue<WorkerFunction> work_queue;
-    bool should_quit;
+    std::vector<std::thread> workers_;
+    std::queue<WorkerFunction> work_queue_;
+    bool should_quit_;
 
-    std::mutex data_mutex;
-    std::condition_variable has_more_work_cv;
+    std::mutex mutex_;
+    std::condition_variable has_more_work_;
 };

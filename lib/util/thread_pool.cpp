@@ -7,68 +7,71 @@ ThreadPool::ThreadPool(unsigned num_workers)
 {
     {
         // Should use lock to ensure memory fence before workers have started
-        std::unique_lock<std::mutex> lock(data_mutex);
-        should_quit = false;
+        std::unique_lock<std::mutex> lock(mutex_);
+        should_quit_ = false;
     }
-    std::function<void()> worker_thread_fn = [this]() { this->worker_func(); };
-    workers.reserve(num_workers);
+    std::function<void()> worker_thread_fn = [this]() { this->Run(); };
+    workers_.reserve(num_workers);
     for (unsigned worker_iter = 0; worker_iter < num_workers; ++worker_iter)
-        workers.emplace_back(worker_thread_fn);
+        workers_.emplace_back(worker_thread_fn);
 }
 
 ThreadPool::~ThreadPool()
 {
-  shutdown();
+    Shutdown();
 }
 
-void ThreadPool::enqueue(WorkerFunction fn)
+void ThreadPool::Enqueue(WorkerFunction fn)
 {
     {
-        std::unique_lock<std::mutex> lock(data_mutex);
-        work_queue.push(fn);
+        std::unique_lock<std::mutex> lock(mutex_);
+        work_queue_.push(fn);
     }
-    has_more_work_cv.notify_one();
+    has_more_work_.notify_one();
 }
 
-bool ThreadPool::worker_dequeue(WorkerFunction& result)
+bool ThreadPool::WorkerDequeue(WorkerFunction& result)
 {
-    std::unique_lock<std::mutex> lock(data_mutex);
-    while (!should_quit && work_queue.empty())
-        has_more_work_cv.wait(lock);
+    std::unique_lock<std::mutex> lock(mutex_);
+    while (!should_quit_ && work_queue_.empty())
+        has_more_work_.wait(lock);
 
-    if (should_quit) {
+    if (should_quit_) {
         return false;
     } else {
-        result = work_queue.front();
-        work_queue.pop();
+        result = work_queue_.front();
+        work_queue_.pop();
         return true;
     }
 }
 
-void ThreadPool::worker_func()
+void ThreadPool::Run()
 {
     while (true) {
         try {
             WorkerFunction fn;
-            if (!worker_dequeue(fn))
+            if (!WorkerDequeue(fn))
                 return;
 
             fn();
+        } catch (std::exception& exc) {
+            std::cerr << "ThreadPool: Caught exception in worker function: "
+                      << exc.what() << std::endl;
         } catch (...) {
-            std::cerr << "Caught exception in worker function" << std::endl;
+            std::cerr << "ThreadPool: Caught unknown exception in worker function" << std::endl;
         }
     }
 }
 
-void ThreadPool::shutdown()
+void ThreadPool::Shutdown()
 {
     {
-        std::unique_lock<std::mutex> lock(data_mutex);
-        should_quit = true;
+        std::unique_lock<std::mutex> lock(mutex_);
+        should_quit_ = true;
     }
-    has_more_work_cv.notify_all();
-    for (std::thread& thread: workers)
+    has_more_work_.notify_all();
+    for (std::thread& thread: workers_)
         thread.join();
 
-    workers.clear();
+    workers_.clear();
 }
