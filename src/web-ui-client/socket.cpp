@@ -13,59 +13,59 @@
 #include <netdb.h>
 
 Socket::Socket()
-    : has_fd(false)
-    , fd(0)
+    : has_fd_(false)
+    , fd_(0)
 {
 }
 
 Socket::Socket(int fd)
-    : has_fd(true)
-    , fd(fd)
+    : has_fd_(true)
+    , fd_(fd)
 {
 }
 
 int Socket::GetFd() const
 {
-    return fd;
+    return fd_;
 }
 
-void Socket::Set(int fd)
+void Socket::Set(int fd_other)
 {
-    if (has_fd)
+    if (has_fd_)
         Close();
 
-    has_fd = true;
-    this->fd = fd;
+    has_fd_ = true;
+    fd_ = fd_other;
 }
 
 void Socket::Close()
 {
-    if (!has_fd)
+    if (!has_fd_)
         throw std::logic_error("Called Socket::Close() on Socket that does not own fd");
 
     // std::cerr << "closing socket " << fd << std::endl;
-    if (close(fd) < 0 && errno != EINTR)
+    if (close(fd_) < 0 && errno != EINTR)
         std::cerr << "WARNING: Failed to close socket: "
                   << std::string(strerror(errno))
                   << std::endl;
 
-    has_fd = false;
-    fd = 0;
+    has_fd_ = false;
+    fd_ = 0;
 }
 
 int Socket::Disown()
 {
-    if (!has_fd)
+    if (!has_fd_)
         throw std::logic_error("Called Socket::Disown() on Socket that does not own fd");
 
-    int result = fd;
-    fd = 0;
-    has_fd = false;
+    int result = fd_;
+    fd_ = 0;
+    has_fd_ = false;
     return result;
 }
 
 Socket::~Socket()
 {
-    if (has_fd)
+    if (has_fd_)
         Close();
 }

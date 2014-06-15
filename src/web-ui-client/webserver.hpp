@@ -54,16 +54,19 @@ struct SocketAddress
 
 class Socket
 {
-    bool has_fd;
-    int fd;
-    public:
+public:
     Socket();
     Socket(int fd);
+    ~Socket();
+
     int GetFd() const;
     void Set(int fd);
     int Disown();
     void Close();
-    ~Socket();
+
+private:
+    bool has_fd_;
+    int fd_;
 };
 
 struct Url
