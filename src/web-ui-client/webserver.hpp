@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <functional>
 
+#include "util/thread_pool.h"
 #include "protocol/protocol.h"
 
 struct WebServerOptions
@@ -63,28 +64,6 @@ class Socket
     int Disown();
     void Close();
     ~Socket();
-};
-
-class ThreadPool
-{
-public:
-    using WorkerFunction = std::function<void()>;
-
-    ThreadPool(unsigned num_workers = 4 * std::thread::hardware_concurrency());
-    ~ThreadPool();
-    void enqueue(WorkerFunction fn);
-
-private:
-    void shutdown();
-    void worker_func();
-    bool worker_dequeue(WorkerFunction&);
-
-    std::vector<std::thread> workers;
-    std::queue<WorkerFunction> work_queue;
-    bool should_quit;
-
-    std::mutex data_mutex;
-    std::condition_variable has_more_work_cv;
 };
 
 struct Url

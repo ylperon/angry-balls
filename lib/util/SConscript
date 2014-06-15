@@ -1,6 +1,7 @@
 Import('env')
 
-cpp_files = ['geometry.cpp'
+cpp_files = ['geometry.cpp',
+             'thread_pool.cpp'
             ]
 
 util_lib = env.StaticLibrary(target = 'util',

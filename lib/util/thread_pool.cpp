@@ -1,8 +1,7 @@
-#include "webserver.hpp"
+#include "util/thread_pool.h"
 
 #include <iostream>
 #include <stdexcept>
-#include <string>
 
 ThreadPool::ThreadPool(unsigned num_workers)
 {

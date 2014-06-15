@@ -5,7 +5,6 @@ cpp_files = ['client-handler.cpp',
              'handlers.cpp',
              'http.cpp',
              'socket.cpp',
-             'thread-pool.cpp',
              'viewer-client.cpp',
              'webserver.cpp',
              'main.cpp'
