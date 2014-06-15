@@ -1,16 +1,10 @@
 #include "webserver.h"
 
 #include <iostream>
-#include <stdexcept>
-#include <cstring>
 #include <sstream>
-#include <functional>
 #include <string>
 
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <netdb.h>
 
 #include "mac_os_compatibility.h"
