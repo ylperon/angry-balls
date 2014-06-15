@@ -47,13 +47,13 @@ ErrorValue WebServer::StartListening()
 
 ErrorValue WebServer::CreateListenSocket()
 {
-  int fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (fd < 0)
-    return ErrorValue::ErrorFromErrno("Failed to open socket: ");
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+        return ErrorValue::ErrorFromErrno("Failed to open socket: ");
 
-  listen_socket.Set(fd);
-  // std::cerr << "Opened socket " << fd << std::endl;
-  return ErrorValue::Ok();
+    listen_socket.Set(fd);
+    // std::cerr << "Opened socket " << fd << std::endl;
+    return ErrorValue::Ok();
 }
 
 ErrorValue WebServer::BindListenSocket()
