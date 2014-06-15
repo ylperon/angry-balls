@@ -145,7 +145,7 @@ void WebServer::AcceptLoop()
                                           new_client_socket.Disown(),
                                           new_client_addr
                                          );
-      worker_pool.Enqueue([client_handler] { client_handler->serve(); });
+      worker_pool.Enqueue([client_handler] { client_handler->Serve(); });
     }
   }
 }

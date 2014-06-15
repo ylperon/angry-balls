@@ -19,15 +19,15 @@
 #include "mac_os_compatibility.h"
 
 ClientHandler::ClientHandler(WebServer& server, int fd, SocketAddress client_addr)
-    : server(server)
-    , socket(fd)
-    , client_addr(client_addr)
+    : server_(server)
+    , socket_(fd)
+    , client_addr_(client_addr)
 {
 }
 
-void ClientHandler::serve()
+void ClientHandler::Serve()
 {
-    ErrorValue err = read_http_request(client_request);
+    ErrorValue err = ReadHttpRequest(client_request_);
     if (!err.success) {
         std::cerr << "Error serving client: " << err.message << std::endl;
         return;
@@ -37,10 +37,10 @@ void ClientHandler::serve()
     //   std::string str(reinterpret_cast<char*>(client_request.data()), client_request.size());
     //   std::cerr << "body: " << str << std::endl;
     // }
-    const HttpRequest& parsed_request = HttpRequest::Parse(client_request);
-    auto it = server.url_handlers.find(parsed_request.url.absolute_path);
+    const HttpRequest& parsed_request = HttpRequest::Parse(client_request_);
+    auto it = server_.url_handlers.find(parsed_request.url.absolute_path);
     std::function<HttpResponse(const HttpRequest&)> handler;
-    if (it == server.url_handlers.end())
+    if (it == server_.url_handlers.end())
         handler = WebServer::DefaultHttpHandler;
     else
         handler = it->second;
@@ -48,7 +48,7 @@ void ClientHandler::serve()
     const HttpResponse& response = handler(parsed_request);
     std::vector<unsigned char> serialized_response = response.Serialize();
 
-    err = send_http_response(serialized_response);
+    err = SendHttpResponse(serialized_response);
     if (!err.success) {
         std::cerr << "Error sending response: " << err.message << std::endl;
         return;
@@ -109,15 +109,15 @@ DfaStateForHttpRequest DfaStateForHttpRequest_next_state(DfaStateForHttpRequest 
     }
 }
 
-ErrorValue ClientHandler::read_http_request(std::vector<unsigned char>& result)
+ErrorValue ClientHandler::ReadHttpRequest(std::vector<unsigned char>& result)
 {
-    // cerr << "reading http request" << endl;
+    // std::cerr << "reading http request" << std::endl;
     DfaStateForHttpRequest dfa = DfaStateForHttpRequest::initial;
     result.clear();
     std::vector<unsigned char> buf;
     buf.resize(16384);
     while (true) {
-        ssize_t rc = read(socket.GetFd(), buf.data(), buf.size());
+        ssize_t rc = read(socket_.GetFd(), buf.data(), buf.size());
         if (0 == rc)
             return ErrorValue::Error("Client closed connection before sending request");
 
@@ -137,7 +137,7 @@ ErrorValue ClientHandler::read_http_request(std::vector<unsigned char>& result)
     }
 }
 
-void ClientHandler::try_to_report_error_to_client(unsigned status_code, const ErrorValue& value)
+void ClientHandler::TryToReportErrorToClient(unsigned status_code, const ErrorValue& value)
 {
     std::ostringstream message_stream;
     message_stream << "HTTP/1.0 " << status_code << " Error" << "\r\n"
@@ -148,7 +148,7 @@ void ClientHandler::try_to_report_error_to_client(unsigned status_code, const Er
     std::string response_body = message_stream.str();
     size_t written = 0;
     while (written < response_body.length()) {
-        ssize_t rc = send(socket.GetFd(),
+        ssize_t rc = send(socket_.GetFd(),
                           response_body.c_str() + written,
                           response_body.length() - written,
                           MSG_NOSIGNAL);
@@ -159,21 +159,21 @@ void ClientHandler::try_to_report_error_to_client(unsigned status_code, const Er
     }
 }
 
-ErrorValue ClientHandler::send_http_response(const std::vector<unsigned char>& response)
+ErrorValue ClientHandler::SendHttpResponse(const std::vector<unsigned char>& response)
 {
-  size_t written = 0;
-  while (written < response.size()) {
-    ssize_t rc = send(socket.GetFd(),
-                      &response.at(0) + written,
-                      response.size() - written,
-                      MSG_NOSIGNAL);
-    if (0 == rc)
-      return ErrorValue::Error("Peer closed its connection");
+    size_t written = 0;
+    while (written < response.size()) {
+        ssize_t rc = send(socket_.GetFd(),
+                &response.at(0) + written,
+                response.size() - written,
+                MSG_NOSIGNAL);
+        if (0 == rc)
+            return ErrorValue::Error("Peer closed its connection");
 
-    if (rc == -1 && errno != EINTR)
-      return ErrorValue::ErrorFromErrno("Error writing to client: ");
+        if (rc == -1 && errno != EINTR)
+            return ErrorValue::ErrorFromErrno("Error writing to client: ");
 
-    written += rc;
-  }
-  return ErrorValue::Ok();
+        written += rc;
+    }
+    return ErrorValue::Ok();
 }

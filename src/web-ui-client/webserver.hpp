@@ -140,18 +140,20 @@ struct WebServer
 
 class ClientHandler
 {
-    WebServer& server;
-    Socket socket;
-    SocketAddress client_addr;
-    Socket host_socket;
-
-    std::vector<unsigned char> client_request;
-    ErrorValue read_http_request(std::vector<unsigned char>& result);
-    ErrorValue send_http_response(const std::vector<unsigned char>& response);
-    void try_to_report_error_to_client(unsigned status_code, const ErrorValue& value);
-    public:
+public:
     ClientHandler(WebServer& server, int fd, SocketAddress client_addr);
-    void serve();
+    void Serve();
+
+private:
+    WebServer& server_;
+    Socket socket_;
+    SocketAddress client_addr_;
+    Socket host_socket_;
+    std::vector<unsigned char> client_request_;
+
+    ErrorValue ReadHttpRequest(std::vector<unsigned char>& result);
+    ErrorValue SendHttpResponse(const std::vector<unsigned char>& response);
+    void TryToReportErrorToClient(unsigned status_code, const ErrorValue& value);
 };
 
 class ViewerClient
