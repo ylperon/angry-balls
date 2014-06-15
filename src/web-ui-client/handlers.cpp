@@ -10,7 +10,7 @@
 #include "jquery-js-content.h"
 #include "app-js-content.h"
 
-HttpResponse index_handler(const HttpRequest& request)
+HttpResponse IndexHandler(const HttpRequest& request)
 {
     HttpResponse result;
     result.version = request.version;
@@ -25,7 +25,7 @@ HttpResponse index_handler(const HttpRequest& request)
     return result;
 }
 
-HttpResponse jquery_handler(const HttpRequest& request)
+HttpResponse JqueryHandler(const HttpRequest& request)
 {
     HttpResponse result;
     result.version = request.version;
@@ -40,7 +40,7 @@ HttpResponse jquery_handler(const HttpRequest& request)
     return result;
 }
 
-HttpResponse app_js_handler(const HttpRequest& request)
+HttpResponse AppJsHandler(const HttpRequest& request)
 {
     HttpResponse result;
     result.version = request.version;
@@ -53,9 +53,9 @@ HttpResponse app_js_handler(const HttpRequest& request)
     return result;
 }
 
-HttpResponse file_handler(const std::string& filename,
-                          const std::string& content_type,
-                          const HttpRequest& request)
+HttpResponse FileHandler(const std::string& filename,
+                         const std::string& content_type,
+                         const HttpRequest& request)
 {
     std::vector<unsigned char> buf;
     std::ifstream file(filename, std::ios_base::in | std::ios_base::binary);
@@ -76,7 +76,7 @@ HttpResponse file_handler(const std::string& filename,
     return result;
 }
 
-HttpResponse game_state_handler(ViewerClient& client, const HttpRequest& request)
+HttpResponse GameStateHandler(ViewerClient& client, const HttpRequest& request)
 {
     HttpResponse result;
     result.version = request.version;
