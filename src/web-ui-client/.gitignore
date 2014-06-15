@@ -1,7 +1,3 @@
-app-js-content.h
-index-html-content.h
-jquery-js-content.h
-
-ui-webserver
-ui-webserver.asan
-ui-webserver.tsan
+app_js_content.h
+index_html_content.h
+jquery_js_content.h

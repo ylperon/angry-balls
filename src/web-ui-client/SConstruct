@@ -31,15 +31,15 @@ build_subdir = 'debug' if debug_mode else 'release'
 # generate files for build
 import shlex
 import subprocess
-with open('index-html-content.h', 'w') as output_file:
+with open('index_html_content.h', 'w') as output_file:
     subprocess.Popen(shlex.split('python bin2c.py index.html index_html_contents'),
                      stdout = output_file
                     )
-with open('jquery-js-content.h', 'w') as output_file:
+with open('jquery_js_content.h', 'w') as output_file:
     subprocess.Popen(shlex.split('python bin2c.py jquery-1.11.1.min.js jquery_js_contents'),
                      stdout = output_file
                     )
-with open('app-js-content.h', 'w') as output_file:
+with open('app_js_content.h', 'w') as output_file:
     subprocess.Popen(shlex.split('python bin2c.py app.js app_js_contents'),
                      stdout = output_file
                     )

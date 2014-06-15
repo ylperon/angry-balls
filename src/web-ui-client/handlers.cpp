@@ -7,9 +7,9 @@
 #include "webserver.h"
 
 // Automatically generated files.
-#include "index-html-content.h"
-#include "jquery-js-content.h"
-#include "app-js-content.h"
+#include "index_html_content.h"
+#include "jquery_js_content.h"
+#include "app_js_content.h"
 
 HttpResponse IndexHandler(const HttpRequest& request)
 {
