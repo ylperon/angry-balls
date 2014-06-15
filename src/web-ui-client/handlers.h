@@ -1,6 +1,10 @@
 #pragma once
 
-#include "webserver.hpp"
+#include <string>
+
+struct HttpRequest;
+struct HttpResponse;
+class ViewerClient;
 
 HttpResponse index_handler(const HttpRequest& request);
 HttpResponse app_js_handler(const HttpRequest& request);

@@ -1,6 +1,10 @@
-#include "handlers.hpp"
+#include "handlers.h"
 
+#include <string>
+#include <vector>
 #include <fstream>
+
+#include "webserver.h"
 
 #include "index-html-content.h"
 #include "jquery-js-content.h"

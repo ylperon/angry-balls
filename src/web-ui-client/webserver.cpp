@@ -1,3 +1,5 @@
+#include "webserver.h"
+
 #include <iostream>
 #include <stdexcept>
 #include <cstring>
@@ -11,8 +13,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
-#include "webserver.hpp"
 
 WebServer::WebServer(const WebServerOptions& options)
     : options(options)

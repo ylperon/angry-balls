@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#include "webserver.hpp"
+#include "webserver.h"
 
 #include "mac_os_compatibility.h"
 

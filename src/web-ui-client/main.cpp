@@ -1,5 +1,5 @@
-#include "webserver.hpp"
-#include "handlers.hpp"
+#include "webserver.h"
+#include "handlers.h"
 
 #include <string>
 #include <vector>
