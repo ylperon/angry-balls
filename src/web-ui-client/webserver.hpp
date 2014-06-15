@@ -158,19 +158,21 @@ private:
 
 class ViewerClient
 {
-    WebServerOptions options;
-    ab::FieldState field;
-    bool have_field;
-    std::mutex field_mutex;
-
-    Socket socket;
-
-    ErrorValue handshake();
-    ErrorValue get_next_field_state(bool& should_continue);
-    public:
+public:
     ViewerClient(const WebServerOptions& options);
-    void get_field(ab::FieldState& field, bool& have_field);
-    int run();
+    void GetField(ab::FieldState& field, bool& have_field);
+    int Run();
+
+private:
+    WebServerOptions options_;
+    Socket socket_;
+
+    ab::FieldState field_;
+    bool have_field_;
+    std::mutex field_mutex_;
+
+    ErrorValue Handshake();
+    ErrorValue GetNextFieldState(bool& should_continue);
 };
 
 ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr);

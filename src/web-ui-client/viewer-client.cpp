@@ -132,26 +132,26 @@ ErrorValue send_full_message(const Socket& socket, const std::vector<unsigned ch
 } // namespace
 
 ViewerClient::ViewerClient(const WebServerOptions& options)
-    : options(options)
-    , have_field(false)
+    : options_(options)
+    , have_field_(false)
 {
 }
 
-int ViewerClient::run()
+int ViewerClient::Run()
 {
-    ErrorValue err = connect_socket(socket, options.game_server_host, options.game_server_port);
+    ErrorValue err = connect_socket(socket_, options_.game_server_host, options_.game_server_port);
     if (!err.success) {
         std::cerr << "Error connecting to game server: " << err.message << std::endl;
         return 1;
     }
-    err = handshake();
+    err = Handshake();
     if (!err.success) {
         std::cerr << "Error during handshake: " << err.message << std::endl;
         return 1;
     }
     while (true) {
         bool should_continue = false;
-        err = get_next_field_state(should_continue);
+        err = GetNextFieldState(should_continue);
         if (!err.success) {
             std::cerr << "Error getting field state: " << err.message << std::endl;
             return 1;
@@ -163,17 +163,18 @@ int ViewerClient::run()
     return 0;
 }
 
-ErrorValue ViewerClient::handshake() {
+ErrorValue ViewerClient::Handshake()
+{
     ErrorValue err;
     std::vector<unsigned char> buf;
     ab::ViewerSubscribeRequestMessage req_msg;
     std::string req_msg_json = ab::BuildJsonMessage(&req_msg);
     buf.assign(req_msg_json.begin(), req_msg_json.end());
-    err = send_full_message(socket, buf);
+    err = send_full_message(socket_, buf);
     if (!err.success)
         return err;
 
-    err = receive_full_message(socket, buf);
+    err = receive_full_message(socket_, buf);
     if (!err.success)
         return err;
 
@@ -196,11 +197,11 @@ ErrorValue ViewerClient::handshake() {
     return ErrorValue::Ok();
 }
 
-ErrorValue ViewerClient::get_next_field_state(bool& should_continue)
+ErrorValue ViewerClient::GetNextFieldState(bool& should_continue)
 {
     std::vector<unsigned char> buf;
     // std::cerr << "receiving next msg" << std::endl;
-    ErrorValue err = receive_full_message(socket, buf);
+    ErrorValue err = receive_full_message(socket_, buf);
     if (!err.success)
         return err;
 
@@ -220,16 +221,16 @@ ErrorValue ViewerClient::get_next_field_state(bool& should_continue)
             dynamic_cast<ab::FieldStateMessage*>(msg.release()));
 
     // std::cerr << "parsed msg" << std::endl;
-    std::unique_lock<std::mutex> lock(field_mutex);
-    field = resp_msg->field_state;
-    have_field = true;
+    std::unique_lock<std::mutex> lock(field_mutex_);
+    field_ = resp_msg->field_state;
+    have_field_ = true;
     should_continue = true;
     return ErrorValue::Ok();
 }
 
-void ViewerClient::get_field(ab::FieldState& field, bool& have_field)
+void ViewerClient::GetField(ab::FieldState& field_other, bool& have_field_other)
 {
-    std::unique_lock<std::mutex> lock(field_mutex);
-    field = this->field;
-    have_field = this->have_field;
+    std::unique_lock<std::mutex> lock(field_mutex_);
+    field_other = field_;
+    have_field_other = have_field_;
 }

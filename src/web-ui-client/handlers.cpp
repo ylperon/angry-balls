@@ -82,7 +82,7 @@ HttpResponse game_state_handler(ViewerClient& client, const HttpRequest& request
 
     ab::FieldState field;
     bool have_field;
-    client.get_field(field, have_field);
+    client.GetField(field, have_field);
     std::string body;
     if (have_field) {
         ab::FieldStateMessage msg;

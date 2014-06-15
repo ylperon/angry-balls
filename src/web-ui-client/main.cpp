@@ -79,7 +79,7 @@ int main (int argc, char * argv[])
                                          };
     int rc_client, rc_webserver;
     std::thread client_thread = std::thread([&client, &rc_client]() {
-                                                rc_client = client.run();
+                                                rc_client = client.Run();
                                             }
                                            );
     std::thread webserver_thread = std::thread([&server, &rc_webserver]() {
