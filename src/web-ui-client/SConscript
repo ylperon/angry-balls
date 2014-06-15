@@ -1,11 +1,11 @@
 Import('env')
 
-cpp_files = ['client-handler.cpp',
-             'error-value.cpp',
+cpp_files = ['client_handler.cpp',
+             'error_value.cpp',
              'handlers.cpp',
              'http.cpp',
              'socket.cpp',
-             'viewer-client.cpp',
+             'viewer_client.cpp',
              'webserver.cpp',
              'main.cpp'
             ]
