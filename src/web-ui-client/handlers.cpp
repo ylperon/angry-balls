@@ -6,6 +6,7 @@
 
 #include "webserver.h"
 
+// Automatically generated files.
 #include "index-html-content.h"
 #include "jquery-js-content.h"
 #include "app-js-content.h"
