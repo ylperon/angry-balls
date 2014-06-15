@@ -33,17 +33,17 @@ struct ErrorValue
     {
     }
 
-    static ErrorValue ok()
+    static ErrorValue Ok()
     {
         return ErrorValue();
     }
 
-    static ErrorValue error(const std::string& message)
+    static ErrorValue Error(const std::string& message)
     {
         return ErrorValue(message);
     }
 
-    static ErrorValue error_from_errno(const std::string& message);
+    static ErrorValue ErrorFromErrno(const std::string& message);
 };
 
 struct SocketAddress

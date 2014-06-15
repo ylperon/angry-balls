@@ -1,6 +1,6 @@
 #include "webserver.hpp"
 
-ErrorValue ErrorValue::error_from_errno(const std::string& message)
+ErrorValue ErrorValue::ErrorFromErrno(const std::string& message)
 {
-    return ErrorValue(message + std::string(strerror(errno)));
+    return ErrorValue(message + ". " + std::string(strerror(errno)));
 }

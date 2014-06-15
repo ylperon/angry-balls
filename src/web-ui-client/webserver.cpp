@@ -49,18 +49,18 @@ const ErrorValue WebServer::start_listening()
     if (!err.success)
         return err;
 
-    return ErrorValue::ok();
+    return ErrorValue::Ok();
 }
 
 const ErrorValue WebServer::create_listen_socket()
 {
   int fd = socket(AF_INET, SOCK_STREAM, 0);
   if (fd < 0)
-    return ErrorValue::error_from_errno("Failed to open socket: ");
+    return ErrorValue::ErrorFromErrno("Failed to open socket: ");
 
   listen_socket.Set(fd);
   // std::cerr << "Opened socket " << fd << std::endl;
-  return ErrorValue::ok();
+  return ErrorValue::Ok();
 }
 
 const ErrorValue WebServer::bind_listen_socket()
@@ -72,7 +72,7 @@ const ErrorValue WebServer::bind_listen_socket()
                         reinterpret_cast<void*>(&socket_option_value),
                         sizeof(socket_option_value)))
     {
-        return ErrorValue::error_from_errno("Failed to set option SO_REUSEADDR on socket: ");
+        return ErrorValue::ErrorFromErrno("Failed to set option SO_REUSEADDR on socket: ");
     }
 
     struct sockaddr_in bind_addr;
@@ -84,17 +84,17 @@ const ErrorValue WebServer::bind_listen_socket()
              reinterpret_cast<struct sockaddr*>(&bind_addr),
              sizeof(bind_addr)) < 0)
     {
-        return ErrorValue::error_from_errno("Failed to bind socket: ");
+        return ErrorValue::ErrorFromErrno("Failed to bind socket: ");
     }
-    return ErrorValue::ok();
+    return ErrorValue::Ok();
 }
 
 const ErrorValue WebServer::listen_on_socket()
 {
   if (listen(listen_socket.GetFd(), 5) < 0)
-    return ErrorValue::error_from_errno("Failed to listen on server socket: ");
+    return ErrorValue::ErrorFromErrno("Failed to listen on server socket: ");
 
-  return ErrorValue::ok();
+  return ErrorValue::Ok();
 }
 
 ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr)
@@ -103,16 +103,16 @@ ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddr
   socklen_t addr_len = sizeof(peer_addr);
   int fd = accept(socket.GetFd(), reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
   if (fd < 0)
-    return ErrorValue::error_from_errno("Failed to accept: ");
+    return ErrorValue::ErrorFromErrno("Failed to accept: ");
 
   Socket result(fd);
   if (sizeof(peer_addr) != addr_len)
-    return ErrorValue::error("Socket address length mismatch");
+    return ErrorValue::Error("Socket address length mismatch");
 
   result_socket.Set(result.Disown());
   result_addr.ip_addr = ntohl(peer_addr.sin_addr.s_addr);
   result_addr.tcp_port = ntohs(peer_addr.sin_port);
-  return ErrorValue::ok();
+  return ErrorValue::Ok();
 }
 
 std::string ip4_to_string(uint32_t addr)

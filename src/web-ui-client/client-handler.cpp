@@ -119,10 +119,10 @@ ErrorValue ClientHandler::read_http_request(std::vector<unsigned char>& result)
     while (true) {
         ssize_t rc = read(socket.GetFd(), buf.data(), buf.size());
         if (0 == rc)
-            return ErrorValue::error("Client closed connection before sending request");
+            return ErrorValue::Error("Client closed connection before sending request");
 
         if (rc < 0 && errno != EINTR)
-            return ErrorValue::error_from_errno("Error reading request: ");
+            return ErrorValue::ErrorFromErrno("Error reading request: ");
 
         size_t buf_length = static_cast<size_t>(rc);
         for (unsigned int idx = 0; idx < buf_length; ++idx) {
@@ -130,7 +130,7 @@ ErrorValue ClientHandler::read_http_request(std::vector<unsigned char>& result)
             if (dfa == DfaStateForHttpRequest::seen_crlfcrlf) {
                 size_t used_buf_length = idx + 1;
                 result.insert(result.end(), buf.begin(), buf.begin() + used_buf_length);
-                return ErrorValue::ok();
+                return ErrorValue::Ok();
             }
         }
         result.insert(result.end(), buf.begin(), buf.begin() + buf_length);
@@ -168,12 +168,12 @@ ErrorValue ClientHandler::send_http_response(const std::vector<unsigned char>& r
                       response.size() - written,
                       MSG_NOSIGNAL);
     if (0 == rc)
-      return ErrorValue::error("Peer closed its connection");
+      return ErrorValue::Error("Peer closed its connection");
 
     if (rc == -1 && errno != EINTR)
-      return ErrorValue::error_from_errno("Error writing to client: ");
+      return ErrorValue::ErrorFromErrno("Error writing to client: ");
 
     written += rc;
   }
-  return ErrorValue::ok();
+  return ErrorValue::Ok();
 }
