@@ -26,7 +26,7 @@ if __name__ == "__main__":
     print '/* This is automatically generated file! Do not edit it!'
     print '*/'
     print '#pragma once'
-    print "static unsigned char %s[] = {" % (varname,),
+    print "static const unsigned char %s[] = {" % (varname,),
 
     while True:
         byte = contentFile.read(1)
