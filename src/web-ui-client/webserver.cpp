@@ -1,17 +1,10 @@
 #include "webserver.h"
 
 #include <iostream>
-#include <stdexcept>
-#include <cstring>
 #include <sstream>
-#include <memory>
-#include <functional>
 #include <string>
 
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <netdb.h>
 
 WebServer::WebServer(const WebServerOptions& options)
