@@ -86,11 +86,11 @@ struct HttpHeader
     std::string name;
     std::string value;
 
-    static std::string normalize_name(const std::string& name);
+    static std::string NormalizeName(const std::string& name);
 
     HttpHeader() = default;
     HttpHeader(const std::string& name, const std::string& value)
-        : name(normalize_name(name))
+        : name(NormalizeName(name))
         , value(value)
     {
     }

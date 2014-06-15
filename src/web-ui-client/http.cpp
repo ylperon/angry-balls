@@ -44,11 +44,11 @@ const Url Url::Parse(const std::string& url_string)
 }
 
 
-std::string HttpHeader::normalize_name(const std::string& name)
+std::string HttpHeader::NormalizeName(const std::string& name)
 {
     std::string result = name;
 
-    transform(result.begin(), result.end(), result.begin(), ::tolower);
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
     return result;
 }
 
