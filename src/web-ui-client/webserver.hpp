@@ -124,18 +124,18 @@ struct WebServer
     ab::ThreadPool worker_pool;
     Socket listen_socket;
 
-    std::unordered_map<std::string, std::function<const HttpResponse(const HttpRequest&)> >
+    std::unordered_map<std::string, std::function<HttpResponse(const HttpRequest&)> >
         url_handlers;
 
     WebServer(const WebServerOptions& options);
-    int run();
-    void accept_loop();
-    const ErrorValue start_listening();
-    const ErrorValue bind_listen_socket();
-    const ErrorValue create_listen_socket();
-    const ErrorValue listen_on_socket();
+    int Run();
+    void AcceptLoop();
+    ErrorValue StartListening();
+    ErrorValue BindListenSocket();
+    ErrorValue CreateListenSocket();
+    ErrorValue ListenOnSocket();
 
-    static HttpResponse default_http_handler(const HttpRequest& request);
+    static HttpResponse DefaultHttpHandler(const HttpRequest& request);
 };
 
 class ClientHandler

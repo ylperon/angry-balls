@@ -83,7 +83,7 @@ int main (int argc, char * argv[])
                                             }
                                            );
     std::thread webserver_thread = std::thread([&server, &rc_webserver]() {
-                                                   rc_webserver = server.run();
+                                                   rc_webserver = server.Run();
                                                }
                                               );
     client_thread.join();

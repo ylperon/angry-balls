@@ -20,39 +20,39 @@ WebServer::WebServer(const WebServerOptions& options)
 {
 }
 
-int WebServer::run()
+int WebServer::Run()
 {
     ErrorValue err;
-    err = start_listening();
+    err = StartListening();
     if (!err.success) {
         std::cerr << "Could not start: " << err.message << std::endl;
         return 1;
     } else {
         std::cerr << "Listening on port " << options.listen_port << std::endl;
-        accept_loop();
+        AcceptLoop();
         return 0;
     }
 }
 
-const ErrorValue WebServer::start_listening()
+ErrorValue WebServer::StartListening()
 {
     ErrorValue err;
-    err = create_listen_socket();
+    err = CreateListenSocket();
     if (!err.success)
         return err;
 
-    err = bind_listen_socket();
+    err = BindListenSocket();
     if (!err.success)
         return err;
 
-    err = listen_on_socket();
+    err = ListenOnSocket();
     if (!err.success)
         return err;
 
     return ErrorValue::Ok();
 }
 
-const ErrorValue WebServer::create_listen_socket()
+ErrorValue WebServer::CreateListenSocket()
 {
   int fd = socket(AF_INET, SOCK_STREAM, 0);
   if (fd < 0)
@@ -63,7 +63,7 @@ const ErrorValue WebServer::create_listen_socket()
   return ErrorValue::Ok();
 }
 
-const ErrorValue WebServer::bind_listen_socket()
+ErrorValue WebServer::BindListenSocket()
 {
     int socket_option_value = 1;
     if (0 != setsockopt(listen_socket.GetFd(),
@@ -89,7 +89,7 @@ const ErrorValue WebServer::bind_listen_socket()
     return ErrorValue::Ok();
 }
 
-const ErrorValue WebServer::listen_on_socket()
+ErrorValue WebServer::ListenOnSocket()
 {
   if (listen(listen_socket.GetFd(), 5) < 0)
     return ErrorValue::ErrorFromErrno("Failed to listen on server socket: ");
@@ -127,7 +127,7 @@ std::string ip4_to_string(uint32_t addr)
   return stream.str();
 }
 
-void WebServer::accept_loop()
+void WebServer::AcceptLoop()
 {
   while (true) {
     Socket new_client_socket;
@@ -151,7 +151,7 @@ void WebServer::accept_loop()
 }
 
 
-HttpResponse WebServer::default_http_handler(const HttpRequest& request)
+HttpResponse WebServer::DefaultHttpHandler(const HttpRequest& request)
 {
     HttpResponse result;
     result.version = request.version;
