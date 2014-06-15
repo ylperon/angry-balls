@@ -63,7 +63,7 @@ ErrorValue ConnectSocket(Socket& socket, const std::string& hostname, uint16_t p
     return ErrorValue::Ok();
 }
 
-ErrorValue recv_buf(int fd, unsigned char* data, size_t length)
+ErrorValue RecvBuf(int fd, unsigned char* data, size_t length)
 {
     size_t read_pos = 0;
     while (read_pos < length) {
@@ -79,7 +79,7 @@ ErrorValue recv_buf(int fd, unsigned char* data, size_t length)
     return ErrorValue::Ok();
 }
 
-ErrorValue send_buf(int fd, const unsigned char* data, size_t length)
+ErrorValue SendBuf(int fd, const unsigned char* data, size_t length)
 {
     size_t written = 0;
     while (written < length) {
@@ -94,11 +94,11 @@ ErrorValue send_buf(int fd, const unsigned char* data, size_t length)
     return ErrorValue::Ok();
 }
 
-ErrorValue receive_full_message(const Socket& socket, std::vector<unsigned char>& buf)
+ErrorValue ReceiveFullMessage(const Socket& socket, std::vector<unsigned char>& buf)
 {
     size_t message_length;
     union { uint32_t int_value; unsigned char buf_value[4]; } size_buf;
-    ErrorValue err_one = recv_buf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
+    ErrorValue err_one = RecvBuf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
     if (!err_one.success)
         return err_one;
 
@@ -106,7 +106,7 @@ ErrorValue receive_full_message(const Socket& socket, std::vector<unsigned char>
     //std::cerr << "message_length = " << message_length << std::endl;
     buf.clear();
     buf.resize(message_length);
-    ErrorValue err_two = recv_buf(socket.GetFd(), buf.data(), message_length);
+    ErrorValue err_two = RecvBuf(socket.GetFd(), buf.data(), message_length);
     if (!err_two.success)
         return err_two;
 
@@ -118,11 +118,11 @@ ErrorValue send_full_message(const Socket& socket, const std::vector<unsigned ch
 {
     union { uint32_t int_value; unsigned char buf_value[4]; } size_buf;
     size_buf.int_value = buf.size();
-    ErrorValue err_one = send_buf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
+    ErrorValue err_one = SendBuf(socket.GetFd(), size_buf.buf_value, sizeof(size_buf.buf_value));
     if (!err_one.success)
         return err_one;
 
-    ErrorValue err_two = send_buf(socket.GetFd(), buf.data(), buf.size());
+    ErrorValue err_two = SendBuf(socket.GetFd(), buf.data(), buf.size());
     if (!err_two.success)
         return err_two;
 
@@ -174,7 +174,7 @@ ErrorValue ViewerClient::Handshake()
     if (!err.success)
         return err;
 
-    err = receive_full_message(socket_, buf);
+    err = ReceiveFullMessage(socket_, buf);
     if (!err.success)
         return err;
 
@@ -201,7 +201,7 @@ ErrorValue ViewerClient::GetNextFieldState(bool& should_continue)
 {
     std::vector<unsigned char> buf;
     // std::cerr << "receiving next msg" << std::endl;
-    ErrorValue err = receive_full_message(socket_, buf);
+    ErrorValue err = ReceiveFullMessage(socket_, buf);
     if (!err.success)
         return err;
 
