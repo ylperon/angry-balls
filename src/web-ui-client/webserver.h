@@ -145,15 +145,16 @@ public:
     void Serve();
 
 private:
+    ErrorValue ReadHttpRequest(std::vector<unsigned char>& result);
+    ErrorValue SendHttpResponse(const std::vector<unsigned char>& response);
+    void TryToReportErrorToClient(unsigned status_code, const ErrorValue& value);
+
+private:
     WebServer& server_;
     Socket socket_;
     SocketAddress client_addr_;
     Socket host_socket_;
     std::vector<unsigned char> client_request_;
-
-    ErrorValue ReadHttpRequest(std::vector<unsigned char>& result);
-    ErrorValue SendHttpResponse(const std::vector<unsigned char>& response);
-    void TryToReportErrorToClient(unsigned status_code, const ErrorValue& value);
 };
 
 class ViewerClient
@@ -164,15 +165,16 @@ public:
     int Run();
 
 private:
+    ErrorValue Handshake();
+    ErrorValue GetNextFieldState(bool& should_continue);
+
+private:
     WebServerOptions options_;
     Socket socket_;
 
     ab::FieldState field_;
     bool have_field_;
     std::mutex field_mutex_;
-
-    ErrorValue Handshake();
-    ErrorValue GetNextFieldState(bool& should_continue);
 };
 
 ErrorValue SocketAccept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr);
