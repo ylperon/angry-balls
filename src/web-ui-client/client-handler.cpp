@@ -2,19 +2,11 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <cstring>
 #include <sstream>
-#include <memory>
-#include <functional>
-#include <condition_variable>
-#include <chrono>
 #include <string>
 
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 
 #include "mac_os_compatibility.h"
 
@@ -103,8 +95,6 @@ DfaStateForHttpRequest DfaStateForHttpRequest_next_state(DfaStateForHttpRequest 
                 return DfaStateForHttpRequest::initial;
         } case DfaStateForHttpRequest::seen_crlfcrlf: {
             return DfaStateForHttpRequest::seen_crlfcrlf;
-        } default: {
-            throw std::logic_error("DfaStateForHttpRequest_next_state: invalid state");
         }
     }
 }
