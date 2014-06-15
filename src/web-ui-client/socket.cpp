@@ -2,10 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <string>
 
 #include <unistd.h>
-#include <sys/socket.h>
 
 Socket::Socket()
     : has_fd_(false)
@@ -41,7 +39,7 @@ void Socket::Close()
     // std::cerr << "closing socket " << fd << std::endl;
     if (close(fd_) < 0 && errno != EINTR)
         std::cerr << "WARNING: Failed to close socket: "
-                  << std::string(strerror(errno))
+                  << strerror(errno)
                   << std::endl;
 
     has_fd_ = false;
