@@ -37,7 +37,7 @@ void ClientHandler::serve()
     //   std::string str(reinterpret_cast<char*>(client_request.data()), client_request.size());
     //   std::cerr << "body: " << str << std::endl;
     // }
-    const HttpRequest& parsed_request = HttpRequest::parse(client_request);
+    const HttpRequest& parsed_request = HttpRequest::Parse(client_request);
     auto it = server.url_handlers.find(parsed_request.url.absolute_path);
     std::function<const HttpResponse(const HttpRequest&)> handler;
     if (it == server.url_handlers.end())

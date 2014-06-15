@@ -103,7 +103,7 @@ struct HttpRequest
     Url url;
     std::vector<HttpHeader> headers;
 
-    static HttpRequest parse(const std::vector<unsigned char>& body);
+    static HttpRequest Parse(const std::vector<unsigned char>& body);
 };
 
 struct HttpResponse

@@ -52,7 +52,7 @@ std::string HttpHeader::NormalizeName(const std::string& name)
     return result;
 }
 
-HttpRequest HttpRequest::parse(const std::vector<unsigned char>& body)
+HttpRequest HttpRequest::Parse(const std::vector<unsigned char>& body)
 {
     HttpRequest result;
     std::string body_str = std::string(body.begin(), body.end());
