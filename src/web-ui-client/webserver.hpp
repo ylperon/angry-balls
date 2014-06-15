@@ -77,7 +77,7 @@ struct Url
     std::string absolute_path;
     std::string query;
 
-    static const Url parse(const std::string& url_string);
+    static const Url Parse(const std::string& url_string);
 };
 
 struct HttpHeader

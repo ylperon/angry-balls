@@ -5,7 +5,7 @@
 #include <cctype>
 #include <iostream>
 
-const Url Url::parse(const std::string& url_string)
+const Url Url::Parse(const std::string& url_string)
 {
     auto scheme_separator_pos = url_string.find("://");
     Url result;
@@ -66,7 +66,7 @@ HttpRequest HttpRequest::parse(const std::vector<unsigned char>& body)
     std::string http_and_version;
     req_stream >> verb >> url >> http_and_version;
     result.verb = verb;
-    result.url = Url::parse(url);
+    result.url = Url::Parse(url);
     result.version = http_and_version.substr(http_and_version.find("/") + 1);
     line_start = line_end + 2;
 
