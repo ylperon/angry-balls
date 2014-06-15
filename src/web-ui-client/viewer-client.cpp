@@ -1,3 +1,5 @@
+#include "webserver.h"
+
 #include <iostream>
 #include <stdexcept>
 #include <cstring>
@@ -11,13 +13,11 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#include "webserver.h"
-
 #include "mac_os_compatibility.h"
 
 namespace {
 
-ErrorValue connect_socket(Socket& socket, const std::string& hostname, uint16_t port)
+ErrorValue ConnectSocket(Socket& socket, const std::string& hostname, uint16_t port)
 {
     int fd = ::socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0)
@@ -139,7 +139,7 @@ ViewerClient::ViewerClient(const WebServerOptions& options)
 
 int ViewerClient::Run()
 {
-    ErrorValue err = connect_socket(socket_, options_.game_server_host, options_.game_server_port);
+    ErrorValue err = ConnectSocket(socket_, options_.game_server_host, options_.game_server_port);
     if (!err.success) {
         std::cerr << "Error connecting to game server: " << err.message << std::endl;
         return 1;
