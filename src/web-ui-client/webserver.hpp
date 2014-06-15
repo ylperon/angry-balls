@@ -175,5 +175,5 @@ private:
     ErrorValue GetNextFieldState(bool& should_continue);
 };
 
-ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr);
-std::string ip4_to_string(uint32_t addr);
+ErrorValue SocketAccept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr);
+std::string Ip4ToString(uint32_t addr);

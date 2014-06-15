@@ -91,40 +91,40 @@ ErrorValue WebServer::BindListenSocket()
 
 ErrorValue WebServer::ListenOnSocket()
 {
-  if (listen(listen_socket.GetFd(), 5) < 0)
-    return ErrorValue::ErrorFromErrno("Failed to listen on server socket: ");
+    if (listen(listen_socket.GetFd(), 5) < 0)
+        return ErrorValue::ErrorFromErrno("Failed to listen on server socket: ");
 
-  return ErrorValue::Ok();
+    return ErrorValue::Ok();
 }
 
-ErrorValue socket_accept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr)
+ErrorValue SocketAccept(const Socket& socket, Socket& result_socket, SocketAddress& result_addr)
 {
-  struct sockaddr_in peer_addr;
-  socklen_t addr_len = sizeof(peer_addr);
-  int fd = accept(socket.GetFd(), reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
-  if (fd < 0)
-    return ErrorValue::ErrorFromErrno("Failed to accept: ");
+    struct sockaddr_in peer_addr;
+    socklen_t addr_len = sizeof(peer_addr);
+    int fd = accept(socket.GetFd(), reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+    if (fd < 0)
+        return ErrorValue::ErrorFromErrno("Failed to accept: ");
 
-  Socket result(fd);
-  if (sizeof(peer_addr) != addr_len)
-    return ErrorValue::Error("Socket address length mismatch");
+    Socket result(fd);
+    if (sizeof(peer_addr) != addr_len)
+        return ErrorValue::Error("Socket address length mismatch");
 
-  result_socket.Set(result.Disown());
-  result_addr.ip_addr = ntohl(peer_addr.sin_addr.s_addr);
-  result_addr.tcp_port = ntohs(peer_addr.sin_port);
-  return ErrorValue::Ok();
+    result_socket.Set(result.Disown());
+    result_addr.ip_addr = ntohl(peer_addr.sin_addr.s_addr);
+    result_addr.tcp_port = ntohs(peer_addr.sin_port);
+    return ErrorValue::Ok();
 }
 
-std::string ip4_to_string(uint32_t addr)
+std::string Ip4ToString(uint32_t addr)
 {
-  static const unsigned octets[4] = {static_cast<unsigned>((addr >> 24) & 0xFF),
-                                     static_cast<unsigned>((addr >> 16) & 0xFF),
-                                     static_cast<unsigned>((addr >> 8) & 0xFF),
-                                     static_cast<unsigned>((addr) & 0xFF)
-                                    };
-  std::ostringstream stream;
-  stream << octets[0] << "." << octets[1] << "." << octets[2] << "." << octets[3];
-  return stream.str();
+    static const unsigned octets[4] = {static_cast<unsigned>((addr >> 24) & 0xFF),
+                                       static_cast<unsigned>((addr >> 16) & 0xFF),
+                                       static_cast<unsigned>((addr >> 8) & 0xFF),
+                                       static_cast<unsigned>((addr) & 0xFF)
+    };
+    std::ostringstream stream;
+    stream << octets[0] << "." << octets[1] << "." << octets[2] << "." << octets[3];
+    return stream.str();
 }
 
 void WebServer::AcceptLoop()
@@ -132,12 +132,12 @@ void WebServer::AcceptLoop()
   while (true) {
     Socket new_client_socket;
     SocketAddress new_client_addr;
-    ErrorValue err = socket_accept(listen_socket, new_client_socket, new_client_addr);
+    ErrorValue err = SocketAccept(listen_socket, new_client_socket, new_client_addr);
     if (!err.success) {
         std::cerr << "In accept: " << err.message << std::endl;
     } else {
       // std::cerr << "Accepted connection from "
-      //           << ip4_to_string(new_client_addr.ip_addr)
+      //           << Ip4ToString(new_client_addr.ip_addr)
       //           << ":" << new_client_addr.tcp_port
       //           << std::endl;
         std::shared_ptr<ClientHandler> client_handler =

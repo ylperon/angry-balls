@@ -47,7 +47,7 @@ ErrorValue connect_socket(Socket& socket, const std::string& hostname, uint16_t 
     socket_addr.sin_port = htons(port);
 
     // std::cerr << "got hostname addr: "
-    //           << ip4_to_string(ntohl(socket_addr.sin_addr.s_addr))
+    //           << Ip4ToString(ntohl(socket_addr.sin_addr.s_addr))
     //           << std::endl;
 
     // std::cerr << "connecting" << std::endl;
