@@ -3,10 +3,36 @@
 #include "ab/strategy_interface.h"
 
 #include <random>
+#include <string>
+#include <vector>
 
 #include <cstddef>
 
 namespace ab {
+
+enum class StrategyName
+{
+    DoNothing,
+    MoveToClosest,
+    Predictive,
+    Drunk,
+    Buffalo,
+    RandomAcceleration,
+};
+
+static const std::vector<StrategyName> StrategyNames = { StrategyName::DoNothing,
+                                                         StrategyName::MoveToClosest,
+                                                         StrategyName::Predictive,
+                                                         StrategyName::Drunk,
+                                                         StrategyName::Buffalo,
+                                                         StrategyName::RandomAcceleration
+                                                       };
+
+std::string ToString(const StrategyName name);
+
+bool TryFromString(const std::string& str, StrategyName& name);
+
+StrategyName FromString(const std::string& str);
 
 class DoNothingStrategy : public StrategyInterface
 {
