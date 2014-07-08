@@ -1,5 +1,7 @@
 #include "strategies/strategies.h"
 
+#include <util/cast.h>
+
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -84,24 +86,16 @@ const std::vector<std::string>& ab::GetAllStrategyNamesStr()
     return helper.GetAllStr();
 }
 
-std::string ab::ToString(const ab::StrategyName name)
+template <>
+std::string ab::ToString<ab::StrategyName>(const ab::StrategyName name)
 {
     static const Helper& helper = Helper::GetInstance();
     return helper.ToString(name);
 }
 
-bool ab::TryFromString(const std::string& str, ab::StrategyName& name)
+template <>
+bool ab::TryFromString<ab::StrategyName>(const std::string& str, ab::StrategyName& name)
 {
     static const Helper& helper = Helper::GetInstance();
     return helper.TryFromString(str, name);
-}
-
-ab::StrategyName ab::FromString(const std::string& str)
-{
-    static const Helper& helper = Helper::GetInstance();
-    ab::StrategyName name;
-    if (!helper.TryFromString(str, name))
-        throw std::runtime_error("Failed to convert string to ab::StrategyName");
-
-    return name;
 }

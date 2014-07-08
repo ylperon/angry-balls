@@ -1,10 +1,12 @@
 #include "protocol/protocol.h"
 
+#include <util/cast.h>
+
+#include <json/json.h>
+
 #include <stdexcept>
 
 #include <cassert>
-
-#include <json/json.h>
 
 namespace {
 

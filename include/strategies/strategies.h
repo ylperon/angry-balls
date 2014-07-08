@@ -23,10 +23,6 @@ enum class StrategyName
 const std::vector<StrategyName>& GetAllStrategyNames();
 const std::vector<std::string>& GetAllStrategyNamesStr();
 
-std::string ToString(const StrategyName name);
-bool TryFromString(const std::string& str, StrategyName& name);
-StrategyName FromString(const std::string& str);
-
 class DoNothingStrategy : public StrategyInterface
 {
 public:

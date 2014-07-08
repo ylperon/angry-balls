@@ -1,5 +1,7 @@
 #include "protocol/protocol.h"
 
+#include <util/cast.h>
+
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -51,24 +53,16 @@ private:
 
 } // namespace
 
-std::string ab::ToString(const ab::MessageType name)
+template <>
+std::string ab::ToString<ab::MessageType>(const ab::MessageType name)
 {
     static const Helper& helper = Helper::GetInstance();
     return helper.ToString(name);
 }
 
-bool ab::TryFromString(const std::string& str, ab::MessageType& name)
+template <>
+bool ab::TryFromString<ab::MessageType>(const std::string& str, ab::MessageType& name)
 {
     static const Helper& helper = Helper::GetInstance();
     return helper.TryFromString(str, name);
-}
-
-ab::MessageType ab::FromString(const std::string& str)
-{
-    static const Helper& helper = Helper::GetInstance();
-    ab::MessageType name;
-    if (!helper.TryFromString(str, name))
-        throw std::runtime_error("Failed to convert string to ab::MessageType");
-
-    return name;
 }

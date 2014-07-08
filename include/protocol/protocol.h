@@ -17,10 +17,6 @@ enum MessageType : size_t
     kFinishMessage
 };
 
-std::string ToString(const MessageType type);
-bool TryFromString(const std::string& message, MessageType& type);
-MessageType FromString(const std::string& message);
-
 struct Message
 {
     MessageType type;

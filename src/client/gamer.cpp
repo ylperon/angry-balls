@@ -12,6 +12,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#include <util/cast.h>
+
 #include "ab/strategy_interface.h"
 #include "protocol/protocol.h"
 
