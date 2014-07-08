@@ -1,77 +1,10 @@
 #include "protocol/protocol.h"
 
-#include <sstream>
 #include <stdexcept>
-#include <map>
 
 #include <cassert>
 
 #include <json/json.h>
-
-namespace {
-
-class Helper
-{
-public:
-    Helper()
-    {
-        enum_to_string[ab::kClientSubscribeRequestMessage] = "CLI_SUB_REQUEST";
-        enum_to_string[ab::kClientSubscribeResultMessage] = "CLI_SUB_RESULT";
-        enum_to_string[ab::kViewerSubscribeRequestMessage] = "VIEW_SUB_REQUEST";
-        enum_to_string[ab::kViewerSubscribeResultMessage] = "VIEW_SUB_RESULT";
-        enum_to_string[ab::kFieldStateMessage] = "STATE";
-        enum_to_string[ab::kTurnMessage] = "TURN";
-        enum_to_string[ab::kFinishMessage] = "FINISH";
-
-        for (auto iter = enum_to_string.begin(); iter != enum_to_string.end(); ++iter)
-            string_to_enum[iter->second] = iter->first;
-    }
-
-    std::map<ab::MessageType, std::string> enum_to_string;
-    std::map<std::string, ab::MessageType> string_to_enum;
-};
-
-static const Helper& GetHelperInstance()
-{
-    static const Helper helper;
-    return helper;
-}
-
-template <typename T>
-std::string ToString(const T value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
-
-} // namespace
-
-std::string ab::ToString(const ab::MessageType type)
-{
-    static const Helper& helper = GetHelperInstance();
-    return helper.enum_to_string.at(type);
-}
-
-bool ab::TryFromString(const std::string& message, ab::MessageType& type)
-{
-    static const Helper& helper = GetHelperInstance();
-    auto iter = helper.string_to_enum.find(message);
-    if (helper.string_to_enum.end() == iter)
-        return false;
-
-    type = iter->second;
-    return true;
-}
-
-ab::MessageType ab::FromString(const std::string& message)
-{
-    MessageType type;
-    if (!TryFromString(message, type))
-        throw std::runtime_error("Failed to convert string to ab::MessageType");
-
-    return type;
-}
 
 namespace {
 

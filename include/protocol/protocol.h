@@ -6,7 +6,7 @@
 
 namespace ab {
 
-enum MessageType
+enum MessageType : size_t
 {
     kClientSubscribeRequestMessage,
     kClientSubscribeResultMessage,

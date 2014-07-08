@@ -11,7 +11,8 @@ json_cpp_cpp_files = ['json_value.cpp',
                      ]
 json_cpp_cpp_files = [os.path.join(json_cpp_cpp_path, x) for x in json_cpp_cpp_files]
 
-cpp_files = ['protocol.cpp'
+cpp_files = ['string_conversion.cpp',
+             'protocol.cpp'
             ]
 cpp_files += json_cpp_cpp_files
 
