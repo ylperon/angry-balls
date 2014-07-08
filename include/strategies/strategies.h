@@ -20,26 +20,12 @@ enum class StrategyName
     RandomAcceleration,
 };
 
+const std::vector<StrategyName>& GetAllStrategyNames();
+const std::vector<std::string>& GetAllStrategyNamesStr();
+
 std::string ToString(const StrategyName name);
 bool TryFromString(const std::string& str, StrategyName& name);
 StrategyName FromString(const std::string& str);
-
-static const std::vector<StrategyName> StrategyNames = { StrategyName::DoNothing,
-                                                         StrategyName::MoveToClosest,
-                                                         StrategyName::Predictive,
-                                                         StrategyName::Drunk,
-                                                         StrategyName::Buffalo,
-                                                         StrategyName::RandomAcceleration
-                                                       };
-
-static const std::vector<std::string> StrategyNamesStr =
-    { ToString(StrategyName::DoNothing),
-      ToString(StrategyName::MoveToClosest),
-      ToString(StrategyName::Predictive),
-      ToString(StrategyName::Drunk),
-      ToString(StrategyName::Buffalo),
-      ToString(StrategyName::RandomAcceleration)
-    };
 
 class DoNothingStrategy : public StrategyInterface
 {

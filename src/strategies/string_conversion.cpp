@@ -13,6 +13,13 @@ class Helper
 public:
     Helper()
     {
+        enum_ = { ab::StrategyName::DoNothing,
+                  ab::StrategyName::MoveToClosest,
+                  ab::StrategyName::Predictive,
+                  ab::StrategyName::Drunk,
+                  ab::StrategyName::Buffalo,
+                  ab::StrategyName::RandomAcceleration
+                };
         enum_to_string_[static_cast<size_t>(ab::StrategyName::DoNothing)] = "DoNothingStrategy";
         enum_to_string_[static_cast<size_t>(ab::StrategyName::MoveToClosest)]
             = "MoveToClosestStrategy";
@@ -22,7 +29,7 @@ public:
         enum_to_string_[static_cast<size_t>(ab::StrategyName::RandomAcceleration)]
             = "RandomAccelerationStrategy";
 
-        assert(enum_to_string_.size() == ab::StrategyNames.size());
+        assert(enum_to_string_.size() == enum_.size());
     }
 
     static const Helper& GetInstance()
@@ -48,11 +55,34 @@ public:
         return false;
     }
 
+    inline const std::vector<ab::StrategyName>& GetAll() const
+    {
+        return enum_;
+    }
+
+    inline const std::vector<std::string>& GetAllStr() const
+    {
+        return enum_to_string_;
+    }
+
 private:
+    std::vector<ab::StrategyName> enum_;
     std::vector<std::string> enum_to_string_;
 };
 
 } // namespace
+
+const std::vector<ab::StrategyName>& ab::GetAllStrategyNames()
+{
+    static const Helper& helper = Helper::GetInstance();
+    return helper.GetAll();
+}
+
+const std::vector<std::string>& ab::GetAllStrategyNamesStr()
+{
+    static const Helper& helper = Helper::GetInstance();
+    return helper.GetAllStr();
+}
 
 std::string ab::ToString(const ab::StrategyName name)
 {
