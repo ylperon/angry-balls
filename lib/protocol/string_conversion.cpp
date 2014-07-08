@@ -15,6 +15,7 @@ class Helper
 public:
     Helper()
     {
+        enum_to_string_.resize(7);
         enum_to_string_[ab::kClientSubscribeRequestMessage] = "CLI_SUB_REQUEST";
         enum_to_string_[ab::kClientSubscribeResultMessage] = "CLI_SUB_RESULT";
         enum_to_string_[ab::kViewerSubscribeRequestMessage] = "VIEW_SUB_REQUEST";

@@ -22,6 +22,7 @@ public:
                   ab::StrategyName::Buffalo,
                   ab::StrategyName::RandomAcceleration
                 };
+        enum_to_string_.resize(6);
         enum_to_string_[static_cast<size_t>(ab::StrategyName::DoNothing)] = "DoNothingStrategy";
         enum_to_string_[static_cast<size_t>(ab::StrategyName::MoveToClosest)]
             = "MoveToClosestStrategy";
