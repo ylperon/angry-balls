@@ -1,6 +1,7 @@
 Import('env')
 
 cpp_files = ['string_conversion.cpp',
+             'factory.cpp',
              'move_to_closest_strategy.cpp',
              'predictive_strategy.cpp',
              'do_nothing_strategy.cpp',
