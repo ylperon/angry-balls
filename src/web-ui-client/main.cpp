@@ -18,34 +18,34 @@ void print_usage(const std::string& arg0)
 
 WebServerOptions parse_options(const std::vector<std::string>& args, bool& help_was_requested)
 {
-  WebServerOptions result;
-  result.listen_port = 9010;
-  auto it = args.begin();
-  help_was_requested = false;
-  while (it < args.end()) {
-    const std::string& cur_arg = *it++;
-    if (cur_arg == "--help") {
-      help_was_requested = true;
-      return result;
-    } if (cur_arg == "--http-port") {
-      result.listen_port = std::stoul(*it++);
-    } else if (cur_arg == "--game-server-host") {
-      result.game_server_host = *it++;
-    } else if (cur_arg == "--game-server-port") {
-      result.game_server_port = std::stoul(*it++);
-    } else if (cur_arg == "--dev") {
-      result.developer_mode = true;
+    WebServerOptions result;
+    result.listen_port = 9010;
+    auto it = args.begin();
+    help_was_requested = false;
+    while (it < args.end()) {
+        const std::string& cur_arg = *it++;
+        if (cur_arg == "--help") {
+            help_was_requested = true;
+            return result;
+        } if (cur_arg == "--http-port") {
+            result.listen_port = std::stoul(*it++);
+        } else if (cur_arg == "--game-server-host") {
+            result.game_server_host = *it++;
+        } else if (cur_arg == "--game-server-port") {
+            result.game_server_port = std::stoul(*it++);
+        } else if (cur_arg == "--dev") {
+            result.developer_mode = true;
+        }
     }
-  }
-  return result;
+    return result;
 }
 
 int main (int argc, char * argv[])
 {
     bool help_was_requested;
     WebServerOptions options = parse_options(std::vector<std::string>(&argv[1], &argv[argc]),
-            help_was_requested
-            );
+                                             help_was_requested
+                                            );
     if (help_was_requested) {
         print_usage(argv[0]);
         return 1;
