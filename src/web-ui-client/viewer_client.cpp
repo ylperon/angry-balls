@@ -1,5 +1,7 @@
 #include "webserver.h"
 
+#include <util/cast.h>
+
 #include <iostream>
 #include <sstream>
 #include <string>
