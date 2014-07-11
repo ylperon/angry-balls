@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-void print_usage(const std::string& arg0)
+void PrintUsage(const std::string& arg0)
 {
     std::cout << "Usage: " << arg0 << " [--help]"
                                    << " [--dev]"
@@ -16,7 +16,7 @@ void print_usage(const std::string& arg0)
                                    << std::endl;
 }
 
-WebServerOptions parse_options(const std::vector<std::string>& args, bool& help_was_requested)
+WebServerOptions ParseOptions(const std::vector<std::string>& args, bool& help_was_requested)
 {
     WebServerOptions result;
     result.listen_port = 9010;
@@ -43,11 +43,11 @@ WebServerOptions parse_options(const std::vector<std::string>& args, bool& help_
 int main (int argc, char * argv[])
 {
     bool help_was_requested;
-    WebServerOptions options = parse_options(std::vector<std::string>(&argv[1], &argv[argc]),
-                                             help_was_requested
-                                            );
+    WebServerOptions options = ParseOptions(std::vector<std::string>(&argv[1], &argv[argc]),
+                                            help_was_requested
+                                           );
     if (help_was_requested) {
-        print_usage(argv[0]);
+        PrintUsage(argv[0]);
         return 1;
     }
 
